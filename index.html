@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TacticalCut - Analizador de Partidos Profesional</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 selection:bg-blue-600 selection:text-white overflow-x-hidden">
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    const COLOR_PALETTE = [
+      { name: 'Rojo',     hex: '#ef4444' },
+      { name: 'Azul',     hex: '#3b82f6' },
+      { name: 'Verde',    hex: '#10b981' },
+      { name: 'Amarillo', hex: '#f59e0b' },
+      { name: 'Morado',   hex: '#8b5cf6' },
+      { name: 'Rosa',     hex: '#ec4899' },
+      { name: 'Blanco',   hex: '#ffffff' },
+      { name: 'Cian',     hex: '#06b6d4' },
+      { name: 'Negro',    hex: '#000000' },
+    ];
+
+    const DEFAULT_CATEGORIES = [
+      { id: 'cat-1', name: 'Ataque Organizado',   color: '#3b82f6', lead: 5,  lag: 20, shortcut: 'q' },
+      { id: 'cat-2', name: 'Presión Alta',         color: '#10b981', lead: 5,  lag: 15, shortcut: 'w' },
+      { id: 'cat-3', name: 'Error en Salida',      color: '#ef4444', lead: 8,  lag: 12, shortcut: 'e' },
+      { id: 'cat-4', name: 'Pelota Parada',        color: '#f59e0b', lead: 5,  lag: 20, shortcut: 'r' },
+      { id: 'cat-5', name: 'Transición Defensiva', color: '#8b5cf6', lead: 6,  lag: 14, shortcut: 't' },
+    ];
+
+    const Icons = {
+      Play:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+      Pause:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>,
+      Upload:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+      Download:    (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+      Trash:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+      Settings:    (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+      List:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+      Tag:         (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+      Plus:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+      VideoFile:   (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>,
+      Layers:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>,
+      ArrowUp:     (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>,
+      ArrowDown:   (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>,
+      Folder:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>,
+      Tv:          (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>,
+      Pointer:     (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>,
+      Square:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>,
+      CircleShape: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/></svg>,
+      ArrowShape:  (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+      ArrowConcave:(p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 18 Q 12 8 19 18"/><polyline points="14 18 19 18 17 13"/></svg>,
+      ArrowConvex: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8 Q 12 18 19 8"/><polyline points="14 8 19 8 17 13"/></svg>,
+      Pen:         (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>,
+      Clone:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+      Camera:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+      Undo:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>,
+      Eraser:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 20H7L3 16C2.5 15.5 2.5 14.5 3 14L13 4C13.5 3.5 14.5 3.5 15 4L20 9C20.5 9.5 20.5 10.5 20 11L11 20H20V20Z"/><path d="M6 11L15 20"/></svg>,
+      Image:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+      TextIcon:    (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>,
+      Edit:        (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+      Check:       (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+      SaveDisk:    (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+      // Foco Seguidor
+      Spotlight:   (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,
+      ZoomIn:      (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>,
+      Crosshair:   (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>,
+      FocusBox:    (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h5v5H3zM16 3h5v5h-5zM3 16h5v5H3zM16 16h5v5h-5z"/></svg>,
+    };
+
+    // ── Utilidad: roundRect compatible con todos los browsers ──
+    function canvasRoundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.arcTo(x + w, y,      x + w, y + r,      r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.arcTo(x + w, y + h,  x + w - r, y + h,  r);
+      ctx.lineTo(x + r, y + h);
+      ctx.arcTo(x,      y + h,  x,      y + h - r, r);
+      ctx.lineTo(x,     y + r);
+      ctx.arcTo(x,      y,      x + r,  y,          r);
+      ctx.closePath();
+    }
+
+    function App() {
+      const [projects, setProjects] = useState(() => {
+        try {
+          const saved = localStorage.getItem('tacticalcut_projects_v5');
+          if (saved) { const p = JSON.parse(saved); if (p?.length > 0) return p; }
+        } catch(e) {}
+        return [{ id: 'proj-guarani', name: 'Guaraní vs Libertad', videoName: '', cuts: [], frames: [], categories: DEFAULT_CATEGORIES, selectedCutsForMerge: [] }];
+      });
+
+      const [activeProjectId, setActiveProjectId] = useState(() => {
+        try { const s = localStorage.getItem('tacticalcut_active_project_id_v5'); if (s) return s; } catch(e) {}
+        return 'proj-guarani';
+      });
+
+      const [loadedVideos,        setLoadedVideos]        = useState({});
+      const [activeTab,           setActiveTab]            = useState('panel');
+      const [currentTime,         setCurrentTime]          = useState(0);
+      const [duration,            setDuration]             = useState(0);
+      const [playbackRate,        setPlaybackRate]         = useState(1);
+      const [isPlaying,           setIsPlaying]            = useState(false);
+      const [notification,        setNotification]         = useState(null);
+      const [selectedCut,         setSelectedCut]          = useState(null);
+      const [videoDimensions,     setVideoDimensions]      = useState({ width: 1280, height: 720 });
+      const [isPlayCompActive,    setIsPlayCompActive]     = useState(false);
+      const [compPlayIndex,       setCompPlayIndex]        = useState(0);
+      const [activeCompFrame,     setActiveCompFrame]      = useState(null);
+      const [confirmModal,        setConfirmModal]         = useState({ isOpen: false, title: '', message: '', onConfirm: null });
+      const [newProjName,         setNewProjName]          = useState('');
+      const [isExporting,         setIsExporting]          = useState(false);
+      const [exportProgress,      setExportProgress]       = useState(0);
+      const [exportingName,       setExportingName]        = useState('');
+      const [newCatName,          setNewCatName]           = useState('');
+      const [newCatColor,         setNewCatColor]          = useState('#3b82f6');
+      const [newCatLead,          setNewCatLead]           = useState(5);
+      const [newCatLag,           setNewCatLag]            = useState(20);
+      const [newCatShortcut,      setNewCatShortcut]       = useState('');
+      const [editingContext,      setEditingContext]        = useState({ type: 'global', id: null });
+
+      // Drawing
+      const [drawTool,        setDrawTool]        = useState('cursor');
+      const [drawColor,       setDrawColor]       = useState('#ef4444');
+      const [shapes,          setShapes]          = useState([]);
+      const [currentShape,    setCurrentShape]    = useState(null);
+      const [selectedShapeId, setSelectedShapeId] = useState(null);
+      const [interaction,     setInteraction]     = useState(null);
+
+      // ── FOCO SEGUIDOR state ──
+      // focusTool: 'spotlight' | 'zoom' | 'tracker' | 'focusbox' | null
+      const [focusTool,       setFocusTool]       = useState(null);
+      const [focusShape,      setFocusShape]      = useState(null);
+      const [isDraggingFocus, setIsDraggingFocus] = useState(false);
+      const [focusDragOffset, setFocusDragOffset] = useState({ x: 0, y: 0 });
+      const [zoomLevel,       setZoomLevel]       = useState(2);
+
+      const svgRef           = useRef(null);
+      const videoRef         = useRef(null);
+      const fileInputRef     = useRef(null);
+      const importInputRef   = useRef(null);
+      const mediaRecorderRef = useRef(null);
+      const recordedChunksRef= useRef([]);
+      const compTimerRef     = useRef(null);
+      const isTransitioningRef = useRef(false);
+      const prevContextRef   = useRef({ type: 'global', id: null });
+
+      // ── Auto-save localStorage ──
+      useEffect(() => {
+        try { localStorage.setItem('tacticalcut_projects_v5', JSON.stringify(projects)); } catch(e) {}
+      }, [projects]);
+      useEffect(() => {
+        try { localStorage.setItem('tacticalcut_active_project_id_v5', activeProjectId); } catch(e) {}
+      }, [activeProjectId]);
+      useEffect(() => {
+        return () => { if (compTimerRef.current) clearTimeout(compTimerRef.current); };
+      }, []);
+
+      // ── Project helpers ──
+      const activeProject = projects.find(p => p.id === activeProjectId) || projects[0] || {
+        id: 'proj-default', name: 'Proyecto', videoName: '', cuts: [], frames: [], categories: DEFAULT_CATEGORIES, selectedCutsForMerge: []
+      };
+      const cuts                 = activeProject.cuts;
+      const frames               = activeProject.frames || [];
+      const categories           = activeProject.categories;
+      const selectedCutsForMerge = activeProject.selectedCutsForMerge || [];
+      const activeVideo          = loadedVideos[activeProjectId] || { file: null, src: '' };
+      const videoSrc             = activeVideo.src;
+
+      const setCuts = (fn) => setProjects(prev => prev.map(p => p.id !== activeProjectId ? p : { ...p, cuts: typeof fn === 'function' ? fn(p.cuts) : fn }));
+      const setFrames = (fn) => setProjects(prev => prev.map(p => p.id !== activeProjectId ? p : { ...p, frames: typeof fn === 'function' ? fn(p.frames || []) : fn }));
+      const setCategories = (fn) => setProjects(prev => prev.map(p => p.id !== activeProjectId ? p : { ...p, categories: typeof fn === 'function' ? fn(p.categories) : fn }));
+      const setSelectedCutsForMerge = (fn) => setProjects(prev => prev.map(p => p.id !== activeProjectId ? p : { ...p, selectedCutsForMerge: typeof fn === 'function' ? fn(p.selectedCutsForMerge || []) : fn }));
+      const setVideoFileAndSrc = (file, src) => {
+        setLoadedVideos(prev => ({ ...prev, [activeProjectId]: { file, src } }));
+        setProjects(prev => prev.map(p => p.id !== activeProjectId ? p : { ...p, videoName: file ? file.name : '' }));
+      };
+
+      // ── Auto-save canvas shapes ──
+      useEffect(() => {
+        if (prevContextRef.current.id !== editingContext.id || prevContextRef.current.type !== editingContext.type) {
+          prevContextRef.current = editingContext; return;
+        }
+        if (editingContext.type === 'cut')   setCuts(prev => prev.map(c => c.id === editingContext.id ? { ...c, shapes } : c));
+        if (editingContext.type === 'frame') setFrames(prev => prev.map(f => f.id === editingContext.id ? { ...f, shapes } : f));
+      }, [shapes, editingContext]);
+
+      // ── Utilities ──
+      const formatTime = (secs) => {
+        if (isNaN(secs) || secs === undefined) return '00:00';
+        const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = Math.floor(secs % 60);
+        return [h > 0 ? String(h).padStart(2, '0') : null, String(m).padStart(2, '0'), String(s).padStart(2, '0')].filter(Boolean).join(':');
+      };
+      const showToast = (message, type = 'success') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+      };
+
+      // ── Video upload ──
+      const handleVideoUpload = (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        if (videoSrc) URL.revokeObjectURL(videoSrc);
+        const src = URL.createObjectURL(file);
+        setVideoFileAndSrc(file, src);
+        setSelectedCut(null); setIsPlayCompActive(false);
+        setCurrentTime(0); setDuration(0);
+        setShapes([]); setSelectedShapeId(null);
+        setEditingContext({ type: 'global', id: null });
+        setFocusShape(null); setFocusTool(null);
+        showToast(`Video asociado: ${file.name}`);
+      };
+
+      // ── Compilado en app ──
+      const executePlayCompIndex = (index, playlist) => {
+        if (compTimerRef.current) clearTimeout(compTimerRef.current);
+        if (index >= playlist.length) {
+          setIsPlayCompActive(false); setActiveCompFrame(null); setShapes([]);
+          if (videoRef.current) { videoRef.current.pause(); setIsPlaying(false); }
+          showToast("Finalizó el compilado", "success"); return;
+        }
+        setCompPlayIndex(index);
+        const item = playlist[index];
+        const isFrame = !item.categoryId;
+        if (isFrame) {
+          setActiveCompFrame(item); setShapes(item.shapes || []);
+          if (videoRef.current) { videoRef.current.pause(); setIsPlaying(false); }
+          compTimerRef.current = setTimeout(() => executePlayCompIndex(index + 1, playlist), 5000);
+        } else {
+          setActiveCompFrame(null); setShapes(item.shapes || []);
+          if (videoRef.current) {
+            isTransitioningRef.current = true;
+            videoRef.current.currentTime = item.start;
+            videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+          }
+        }
+      };
+
+      const handleTimeUpdate = () => {
+        if (!videoRef.current) return;
+        const t = videoRef.current.currentTime;
+        setCurrentTime(t);
+        if (isTransitioningRef.current) return;
+        if (isPlayCompActive && !activeCompFrame) {
+          const playlist = selectedCutsForMerge.map(id => cuts.find(c => c.id === id) || frames.find(f => f.id === id)).filter(Boolean);
+          const item = playlist[compPlayIndex];
+          if (item?.categoryId && t >= item.end) executePlayCompIndex(compPlayIndex + 1, playlist);
+        } else if (selectedCut && t >= selectedCut.end) {
+          videoRef.current.pause(); setIsPlaying(false); setSelectedCut(null); setShapes([]);
+          showToast("Fin del corte", "info");
+        }
+      };
+
+      const handleLoadedMetadata = () => {
+        if (!videoRef.current) return;
+        setDuration(videoRef.current.duration);
+        setVideoDimensions({ width: videoRef.current.videoWidth || 1280, height: videoRef.current.videoHeight || 720 });
+      };
+
+      // ── Keyboard shortcuts ──
+      useEffect(() => {
+        const onKey = (e) => {
+          if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) || isExporting || confirmModal.isOpen) return;
+          if ((e.key === 'Delete' || e.key === 'Backspace') && selectedShapeId) {
+            e.preventDefault(); setShapes(prev => prev.filter(s => s.id !== selectedShapeId)); setSelectedShapeId(null); return;
+          }
+          if (e.code === 'Space') { e.preventDefault(); togglePlay(); return; }
+          if (e.key === 'ArrowRight') { e.preventDefault(); skipTime(5); return; }
+          if (e.key === 'ArrowLeft')  { e.preventDefault(); skipTime(-5); return; }
+          const cat = categories.find(c => c.shortcut.toLowerCase() === e.key.toLowerCase());
+          if (cat) { e.preventDefault(); triggerCut(cat); }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, [categories, videoSrc, duration, isExporting, confirmModal.isOpen, selectedShapeId]);
+
+      const togglePlay = () => {
+        if (!videoRef.current) return;
+        if (videoRef.current.paused) videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+        else { videoRef.current.pause(); setIsPlaying(false); }
+      };
+      const skipTime = (a) => {
+        if (!videoRef.current) return;
+        const t = Math.max(0, Math.min(videoRef.current.duration || Infinity, videoRef.current.currentTime + a));
+        videoRef.current.currentTime = t; setCurrentTime(t);
+      };
+      const handleSpeedChange = (rate) => {
+        if (!videoRef.current) return;
+        videoRef.current.playbackRate = rate; setPlaybackRate(rate);
+      };
+      const handleProgressClick = (e) => {
+        if (!videoRef.current || !duration) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        videoRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * duration;
+        if (isPlayCompActive) { setIsPlayCompActive(false); setActiveCompFrame(null); showToast("Compilado interrumpido", "info"); }
+      };
+
+      const triggerCut = (cat) => {
+        if (!videoSrc || !videoRef.current) { showToast("Cargá un video primero", "warning"); return; }
+        const t = videoRef.current.currentTime, dur = videoRef.current.duration || duration;
+        const lead = parseFloat(cat.lead) || 0, lag = parseFloat(cat.lag) || 0;
+        const start = Math.max(0, t - lead);
+        const end   = dur ? Math.min(dur, t + lag) : t + lag;
+        const id = `cut-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+        setCuts(prev => [...prev, { id, categoryId: cat.id, categoryName: cat.name, color: cat.color, start: +start.toFixed(1), end: +end.toFixed(1), notes: '', shapes: [] }].sort((a, b) => a.start - b.start));
+        setSelectedCutsForMerge(prev => [...prev, id]);
+        showToast(`Corte: ${cat.name} (-${lead}s / +${lag}s)`);
+      };
+      const getMousePos = (e) => {
+        if (!svgRef.current) return { x: 0, y: 0 };
+        const pt = svgRef.current.createSVGPoint();
+        pt.x = e.clientX; pt.y = e.clientY;
+        try {
+          const c = pt.matrixTransform(svgRef.current.getScreenCTM().inverse());
+          return { x: c.x, y: c.y };
+        } catch {
+          const r = svgRef.current.getBoundingClientRect();
+          return { x: ((e.clientX - r.left) / r.width) * videoDimensions.width, y: ((e.clientY - r.top) / r.height) * videoDimensions.height };
+        }
+      };
+
+      // ────────────────────────────────────────────
+      //  FOCO SEGUIDOR — lógica completa
+      // ────────────────────────────────────────────
+
+      const isInsideFocusShape = (pos, fs) => {
+        if (!fs) return false;
+        const dx = pos.x - fs.x, dy = pos.y - fs.y;
+        if (focusTool === 'spotlight' || focusTool === 'tracker') {
+          return Math.sqrt(dx * dx + dy * dy) <= (fs.radius || 80);
+        }
+        return Math.abs(dx) <= (fs.w || 160) / 2 && Math.abs(dy) <= (fs.h || 120) / 2;
+      };
+
+      const handleFocusPointerDown = (e) => {
+        const pos = getMousePos(e);
+        if (focusShape && isInsideFocusShape(pos, focusShape)) {
+          setIsDraggingFocus(true);
+          setFocusDragOffset({ x: pos.x - focusShape.x, y: pos.y - focusShape.y });
+          return;
+        }
+        // Crear nuevo foco donde hizo click
+        const defaultRadius = Math.min(videoDimensions.width, videoDimensions.height) * 0.12;
+        setFocusShape({ x: pos.x, y: pos.y, radius: defaultRadius, w: defaultRadius * 2.5, h: defaultRadius * 1.8 });
+      };
+
+      const handleFocusPointerMove = (e) => {
+        if (!isDraggingFocus || !focusShape) return;
+        const pos = getMousePos(e);
+        setFocusShape(prev => ({ ...prev, x: pos.x - focusDragOffset.x, y: pos.y - focusDragOffset.y }));
+      };
+
+      const handleFocusPointerUp = () => setIsDraggingFocus(false);
+
+      const handleFocusToolSelect = (tool) => {
+        if (focusTool === tool) { setFocusTool(null); setFocusShape(null); }
+        else { setFocusTool(tool); setFocusShape(null); setSelectedShapeId(null); setDrawTool('cursor'); }
+      };
+
+      // ── Render foco en SVG ──
+      const renderFocusOverlay = () => {
+        if (!focusTool || !focusShape) return null;
+        const { x, y, radius, w, h } = focusShape;
+        const vw = videoDimensions.width, vh = videoDimensions.height;
+        const r = radius || 80;
+        const hw = (w || 160) / 2, hh = (h || 120) / 2;
+        const cursor = isDraggingFocus ? 'grabbing' : 'grab';
+
+        if (focusTool === 'spotlight') {
+          return (
+            <g style={{ cursor }}>
+              <defs>
+                <mask id="spotlight-mask">
+                  <rect x="0" y="0" width={vw} height={vh} fill="white"/>
+                  <circle cx={x} cy={y} r={r} fill="black"/>
+                </mask>
+              </defs>
+              <rect x="0" y="0" width={vw} height={vh} fill="rgba(0,0,0,0.72)" mask="url(#spotlight-mask)"/>
+              <circle cx={x} cy={y} r={r} fill="none" stroke="white" strokeWidth="3" strokeDasharray="8,4" opacity="0.9"/>
+              <circle cx={x} cy={y} r="5" fill="white" opacity="0.7"/>
+            </g>
+          );
+        }
+
+        if (focusTool === 'zoom') {
+          return (
+            <g style={{ cursor }}>
+              <rect x="0" y="0" width={vw} height={vh} fill="rgba(0,0,0,0.45)"/>
+              <rect x={x - hw} y={y - hh} width={hw * 2} height={hh * 2} fill="none" stroke="#f59e0b" strokeWidth="3"/>
+              {/* Esquinas */}
+              {[[-1,-1],[1,-1],[1,1],[-1,1]].map(([sx, sy], i) => (
+                <rect key={i} x={x + sx * hw - (sx > 0 ? 10 : 0)} y={y + sy * hh - (sy > 0 ? 10 : 0)} width="10" height="10" fill="#f59e0b"/>
+              ))}
+              {/* Badge nivel de zoom */}
+              <rect x={x - hw} y={y + hh + 4} width={hw * 2} height={20} rx="4" fill="rgba(0,0,0,0.8)"/>
+              <text x={x} y={y + hh + 18} textAnchor="middle" fill="#f59e0b" fontSize="13" fontWeight="bold" fontFamily="sans-serif">{zoomLevel}x ZOOM</text>
+            </g>
+          );
+        }
+
+        if (focusTool === 'tracker') {
+          return (
+            <g style={{ cursor }}>
+              <circle cx={x} cy={y} r={r}       fill="none" stroke="#10b981" strokeWidth="2.5" strokeDasharray="6,3"/>
+              <circle cx={x} cy={y} r={r * 0.5} fill="none" stroke="#10b981" strokeWidth="1.5" opacity="0.6"/>
+              <circle cx={x} cy={y} r="5"        fill="#10b981"/>
+              <line x1={x - r - 10} y1={y} x2={x + r + 10} y2={y} stroke="#10b981" strokeWidth="1.5" opacity="0.7"/>
+              <line x1={x} y1={y - r - 10} x2={x} y2={y + r + 10} stroke="#10b981" strokeWidth="1.5" opacity="0.7"/>
+              {/* Label */}
+              <rect x={x - 40} y={y - r - 24} width="80" height="18" rx="4" fill="rgba(16,185,129,0.85)"/>
+              <text x={x} y={y - r - 11} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold" fontFamily="sans-serif">TRACKING</text>
+            </g>
+          );
+        }
+
+        if (focusTool === 'focusbox') {
+          return (
+            <g style={{ cursor }}>
+              <rect x="0" y="0" width={vw} height={vh} fill="rgba(0,0,0,0.52)"/>
+              <rect x={x - hw} y={y - hh} width={hw * 2} height={hh * 2} fill="rgba(59,130,246,0.07)" stroke="#3b82f6" strokeWidth="3"/>
+              {/* Líneas de guía internas */}
+              <line x1={x - hw} y1={y} x2={x + hw} y2={y} stroke="#3b82f6" strokeWidth="1" opacity="0.4"/>
+              <line x1={x} y1={y - hh} x2={x} y2={y + hh} stroke="#3b82f6" strokeWidth="1" opacity="0.4"/>
+              {/* Handles en las esquinas y puntos medios */}
+              {[[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0]].map(([sx, sy], i) => (
+                <circle key={i} cx={x + sx * hw} cy={y + sy * hh} r="5" fill="white" stroke="#3b82f6" strokeWidth="2"/>
+              ))}
+              {/* Label */}
+              <rect x={x - hw} y={y - hh - 24} width={Math.max(120, hw * 2)} height="20" rx="4" fill="rgba(59,130,246,0.9)"/>
+              <text x={x} y={y - hh - 10} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold" fontFamily="sans-serif">FOCO SEGUIDOR</text>
+            </g>
+          );
+        }
+        return null;
+      };
+
+      // ── Pointer handlers principales ──
+      const handlePointerDown = (e) => {
+        if (isPlaying || isPlayCompActive) return;
+        if (focusTool) { handleFocusPointerDown(e); return; }
+
+        if (drawTool === 'cursor') {
+          if (e.target.tagName === 'svg') { selectedShapeId ? setSelectedShapeId(null) : togglePlay(); }
+          return;
+        }
+        const pos = getMousePos(e);
+        const ts = currentTime;
+
+        if (drawTool === 'text') {
+          const dw = 280, dh = 100;
+          const ns = {
+            id: 'shape-' + Date.now(), type: 'text', color: drawColor,
+            startX: pos.x - dw / 2, startY: pos.y - dh / 2,
+            text: 'Escribe tu nota táctica...\n(Ej: Cerrar pasillo)',
+            fontFamily: 'chalk', fontSize: 18, isBold: true, isItalic: false,
+            hasShadow: true, hasBg: true, bgColor: '#000000', bgOpacity: 0.8,
+            width: dw, height: dh, timeStart: ts, duration: 'infinite'
+          };
+          setShapes(prev => [...prev, ns]); setSelectedShapeId(ns.id); setDrawTool('cursor');
+          showToast("Anotación creada — editá en el inspector", "success"); return;
+        }
+
+        const ns = {
+          id: 'shape-' + Date.now(), type: drawTool, color: drawColor,
+          startX: pos.x, startY: pos.y, currentX: pos.x, currentY: pos.y,
+          timeStart: ts, duration: 'infinite',
+          points: [{ x: pos.x, y: pos.y }, { x: pos.x, y: pos.y }, { x: pos.x, y: pos.y }, { x: pos.x, y: pos.y }]
+        };
+        setCurrentShape(ns); setInteraction({ mode: 'draw' }); setSelectedShapeId(null);
+      };
+
+      const handleHandlePointerDown = (e, shapeId, hi) => {
+        e.stopPropagation();
+        setInteraction({ mode: 'drag_handle', shapeId, handleIndex: hi });
+        setSelectedShapeId(shapeId);
+      };
+
+      const handleShapePointerDown = (e, shapeId) => {
+        if (drawTool !== 'cursor') return;
+        e.stopPropagation();
+        const pos = getMousePos(e), shape = shapes.find(s => s.id === shapeId);
+        setInteraction({ mode: 'drag_shape', shapeId, startPos: pos, originalShape: JSON.parse(JSON.stringify(shape)) });
+        setSelectedShapeId(shapeId);
+      };
+
+      const createPlayerClone = (sx, sy, cx, cy) => {
+        const video = videoRef.current; if (!video || !videoSrc) return;
+        const x = Math.min(sx, cx), y = Math.min(sy, cy), w = Math.abs(cx - sx), h = Math.abs(cy - sy);
+        if (w < 15 || h < 15) { showToast("Área muy pequeña", "warning"); setDrawTool('cursor'); return; }
+        const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+        try {
+          canvas.getContext('2d').drawImage(video, x, y, w, h, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/png');
+          const ns = {
+            id: 'shape-' + Date.now(), type: 'player_clone', color: drawColor,
+            startX: x, startY: y, currentX: x + w, currentY: y + h,
+            dataUrl, timeStart: currentTime, duration: 'infinite',
+            points: [{ x, y }, { x: x + w, y }, { x: x + w, y: y + h }, { x, y: y + h }]
+          };
+          setShapes(prev => [...prev, ns]); setSelectedShapeId(ns.id); setDrawTool('cursor');
+          showToast("¡Jugador clonado!");
+        } catch { showToast("Error de acceso al video", "error"); }
+      };
+
+      const handlePointerMove = (e) => {
+        if (focusTool) { handleFocusPointerMove(e); return; }
+        const pos = getMousePos(e);
+        if (interaction?.mode === 'draw' && currentShape) {
+          let u = { ...currentShape, currentX: pos.x, currentY: pos.y };
+          if (u.type === 'rect' || u.type === 'clone') {
+            u.points = [{ x: u.startX, y: u.startY }, { x: pos.x, y: u.startY }, { x: pos.x, y: pos.y }, { x: u.startX, y: pos.y }];
+          } else if (u.type === 'arrow_concave' || u.type === 'arrow_convex') {
+            const dx = pos.x - u.startX, dy = pos.y - u.startY, len = Math.sqrt(dx * dx + dy * dy);
+            let nx = -dy / (len || 1), ny = dx / (len || 1);
+            if (u.type === 'arrow_concave') { nx = -nx; ny = -ny; }
+            const off = len * 0.25;
+            u.points = [{ x: u.startX, y: u.startY }, { x: (u.startX + pos.x) / 2 + nx * off, y: (u.startY + pos.y) / 2 + ny * off }, { x: pos.x, y: pos.y }];
+          } else if (u.type === 'freehand') {
+            u.points = [...u.points, pos];
+          }
+          setCurrentShape(u);
+        } else if (interaction?.mode === 'drag_handle') {
+          setShapes(prev => prev.map(s => {
+            if (s.id !== interaction.shapeId) return s;
+            const n = { ...s };
+            if (s.type === 'rect' || s.type === 'player_clone') n.points[interaction.handleIndex] = pos;
+            else if (s.type === 'circle') {
+              if (interaction.handleIndex === 0) n.startY = pos.y;
+              if (interaction.handleIndex === 1) n.currentX = pos.x;
+              if (interaction.handleIndex === 2) n.currentY = pos.y;
+              if (interaction.handleIndex === 3) n.startX = pos.x;
+            } else if (s.type === 'arrow') {
+              if (interaction.handleIndex === 0) { n.startX = pos.x; n.startY = pos.y; }
+              if (interaction.handleIndex === 1) { n.currentX = pos.x; n.currentY = pos.y; }
+            } else if (s.type === 'arrow_concave' || s.type === 'arrow_convex') {
+              n.points[interaction.handleIndex] = pos;
+              if (interaction.handleIndex === 0) { n.startX = pos.x; n.startY = pos.y; }
+              if (interaction.handleIndex === 2) { n.currentX = pos.x; n.currentY = pos.y; }
+            }
+            return n;
+          }));
+        } else if (interaction?.mode === 'drag_shape') {
+          const dx = pos.x - interaction.startPos.x, dy = pos.y - interaction.startPos.y;
+          const o = interaction.originalShape;
+          setShapes(prev => prev.map(s => {
+            if (s.id !== interaction.shapeId) return s;
+            const n = { ...s, startX: o.startX + dx, startY: o.startY + dy, currentX: o.currentX + dx, currentY: o.currentY + dy };
+            if (['rect', 'freehand', 'arrow_concave', 'arrow_convex', 'player_clone'].includes(s.type))
+              n.points = o.points.map(p => ({ x: p.x + dx, y: p.y + dy }));
+            return n;
+          }));
+        }
+      };
+
+      const handlePointerUp = (e) => {
+        if (focusTool) { handleFocusPointerUp(); return; }
+        if (interaction?.mode === 'draw' && currentShape) {
+          if (currentShape.type === 'clone') createPlayerClone(currentShape.startX, currentShape.startY, currentShape.currentX, currentShape.currentY);
+          else { setShapes(prev => [...prev, currentShape]); setSelectedShapeId(currentShape.id); setDrawTool('cursor'); }
+          setCurrentShape(null);
+        }
+        setInteraction(null);
+      };
+
+      // ── Shape visibility ──
+      const isShapeVisible = (shape) => {
+        if (activeCompFrame || editingContext.type === 'frame') return true;
+        if (shape.duration === 'infinite' || shape.duration === undefined || shape.alwaysVisible) return true;
+        const start = shape.timeStart ?? 0, dur = parseFloat(shape.duration) || 3;
+        return currentTime >= start && currentTime <= (start + dur);
+      };
+
+      // ── Render SVG shapes ──
+      const renderShape = (shape, isCurrent = false) => {
+        if (!isCurrent && !isShapeVisible(shape)) return null;
+        const isSel = selectedShapeId === shape.id && !isCurrent;
+        const { type, color, startX, startY, currentX, currentY, points, id } = shape;
+        let el = null, handles = [];
+
+        if (type === 'rect') {
+          const pts = points.map(p => `${p.x},${p.y}`).join(' ');
+          el = <polygon points={pts} stroke={color} fill={`${color}33`} strokeWidth="3"/>;
+          if (isSel) handles = points.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="6" fill="white" stroke={color} strokeWidth="2" onPointerDown={e => handleHandlePointerDown(e, id, i)} style={{ cursor: 'pointer' }}/>);
+
+        } else if (type === 'clone') {
+          const x = Math.min(startX, currentX), y = Math.min(startY, currentY), w = Math.abs(currentX - startX), h = Math.abs(currentY - startY);
+          el = <g><rect x={x} y={y} width={w} height={h} stroke={color} fill="none" strokeWidth="2" strokeDasharray="5,5"/><text x={x + 5} y={y - 8} fill={color} fontSize="11" fontWeight="bold" fontFamily="sans-serif">Clonando...</text></g>;
+
+        } else if (type === 'player_clone') {
+          const minX = Math.min(...points.map(p => p.x)), minY = Math.min(...points.map(p => p.y));
+          const maxX = Math.max(...points.map(p => p.x)), maxY = Math.max(...points.map(p => p.y));
+          el = <g>
+            <polygon points={points.map(p => `${p.x},${p.y}`).join(' ')} stroke={isSel ? color : 'transparent'} strokeWidth="2" strokeDasharray="4,4" fill="none"/>
+            <image href={shape.dataUrl} x={minX} y={minY} width={maxX - minX} height={maxY - minY} preserveAspectRatio="none" opacity="0.9"/>
+            {shape.trailPoints?.length > 1 && <path d={`M ${shape.trailPoints.map(p => `${p.x},${p.y}`).join(' L ')}`} stroke={color} fill="none" strokeWidth="3" strokeDasharray="6,4"/>}
+          </g>;
+          if (isSel) handles = points.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="6" fill="white" stroke={color} strokeWidth="2" onPointerDown={e => handleHandlePointerDown(e, id, i)} style={{ cursor: 'pointer' }}/>);
+
+        } else if (type === 'circle') {
+          const cx = (startX + currentX) / 2, cy = (startY + currentY) / 2;
+          const rx = Math.abs(currentX - startX) / 2, ry = Math.abs(currentY - startY) / 2;
+          el = <ellipse cx={cx} cy={cy} rx={rx} ry={ry} stroke={color} fill={`${color}33`} strokeWidth="3"/>;
+          if (isSel) {
+            const hp = [{ x: cx, y: startY }, { x: currentX, y: cy }, { x: cx, y: currentY }, { x: startX, y: cy }];
+            handles = hp.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="6" fill="white" stroke={color} strokeWidth="2" onPointerDown={e => handleHandlePointerDown(e, id, i)} style={{ cursor: 'pointer' }}/>);
+          }
+
+        } else if (type === 'freehand') {
+          el = <path d={`M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`} stroke={color} fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>;
+
+        } else if (type === 'arrow') {
+          const ang = Math.atan2(currentY - startY, currentX - startX), hl = 15;
+          el = <g>
+            <line x1={startX} y1={startY} x2={currentX} y2={currentY} stroke={color} strokeWidth="4" strokeLinecap="round"/>
+            <polygon points={`${currentX},${currentY} ${currentX - hl * Math.cos(ang - Math.PI / 6)},${currentY - hl * Math.sin(ang - Math.PI / 6)} ${currentX - hl * Math.cos(ang + Math.PI / 6)},${currentY - hl * Math.sin(ang + Math.PI / 6)}`} fill={color}/>
+          </g>;
+          if (isSel) handles = [
+            <circle key="0" cx={startX} cy={startY} r="6" fill="white" stroke={color} strokeWidth="2" onPointerDown={e => handleHandlePointerDown(e, id, 0)} style={{ cursor: 'pointer' }}/>,
+            <circle key="1" cx={currentX} cy={currentY} r="6" fill="white" stroke={color} strokeWidth="2" onPointerDown={e => handleHandlePointerDown(e, id, 1)} style={{ cursor: 'pointer' }}/>
+          ];
+
+        } else if (type === 'arrow_concave' || type === 'arrow_convex') {
+          const [p0, p1, p2] = points;
+          let dx = p2.x - p1.x || p2.x - p0.x, dy = p2.y - p1.y || p2.y - p0.y;
+          const ang = Math.atan2(dy, dx), hl = 15;
+          el = <g>
+            <path d={`M ${p0.x},${p0.y} Q ${p1.x},${p1.y} ${p2.x},${p2.y}`} fill="none" stroke={color} strokeWidth="4" strokeLinecap="round"/>
+            <polygon points={`${p2.x},${p2.y} ${p2.x - hl * Math.cos(ang - Math.PI / 6)},${p2.y - hl * Math.sin(ang - Math.PI / 6)} ${p2.x - hl * Math.cos(ang + Math.PI / 6)},${p2.y - hl * Math.sin(ang + Math.PI / 6)}`} fill={color}/>
+          </g>;
+          if (isSel) handles = [
+            <polyline key="g" points={`${p0.x},${p0.y} ${p1.x},${p1.y} ${p2.x},${p2.y}`} fill="none" stroke="white" strokeWidth="1" strokeDasharray="4,4" opacity="0.6"/>,
+            <circle key="0" cx={p0.x} cy={p0.y} r="6" fill="white" stroke={color} strokeWidth="2" onPointerDown={e => handleHandlePointerDown(e, id, 0)} style={{ cursor: 'pointer' }}/>,
+            <circle key="1" cx={p1.x} cy={p1.y} r="6" fill="#f59e0b" stroke="white" strokeWidth="2" onPointerDown={e => handleHandlePointerDown(e, id, 1)} style={{ cursor: 'pointer' }}/>,
+            <circle key="2" cx={p2.x} cy={p2.y} r="6" fill="white" stroke={color} strokeWidth="2" onPointerDown={e => handleHandlePointerDown(e, id, 2)} style={{ cursor: 'pointer' }}/>
+          ];
+
+        } else if (type === 'text') {
+          const hexA = shape.hasBg ? `${shape.bgColor || '#000000'}${Math.round((shape.bgOpacity ?? 0.75) * 255).toString(16).padStart(2, '0')}` : 'transparent';
+          el = <foreignObject x={startX} y={startY} width={shape.width || 280} height={shape.height || 100} style={{ overflow: 'visible', pointerEvents: 'auto' }}>
+            <div onPointerDown={e => handleShapePointerDown(e, id)} style={{
+              color: shape.color,
+              backgroundColor: hexA,
+              fontFamily: shape.fontFamily === 'chalk' ? '"Comic Sans MS","Chalkboard SE",cursive' : shape.fontFamily === 'impact' ? 'Impact,Charcoal,sans-serif' : shape.fontFamily === 'sans' ? 'Inter,sans-serif' : shape.fontFamily === 'serif' ? 'Georgia,serif' : '"Courier New",Courier,monospace',
+              fontSize: `${shape.fontSize || 16}px`,
+              fontWeight: shape.isBold ? 'bold' : 'normal',
+              fontStyle: shape.isItalic ? 'italic' : 'normal',
+              textShadow: shape.hasShadow ? '2px 2px 4px rgba(0,0,0,0.95),-1px -1px 0 rgba(0,0,0,0.5)' : 'none',
+              boxShadow: shape.hasBg && shape.hasShadow ? '0 10px 15px -3px rgba(0,0,0,0.5)' : 'none',
+              wordBreak: 'break-word', lineHeight: '1.4', padding: '8px 12px', borderRadius: '8px',
+              borderWidth: isSel ? '2px' : '1px', borderColor: isSel ? '#3b82f6' : 'transparent',
+              cursor: 'move', userSelect: 'none'
+            }}>
+              {shape.text || "Escribe aquí..."}
+            </div>
+          </foreignObject>;
+        }
+
+        return (
+          <g key={id || 'cur'} onPointerDown={isCurrent ? null : e => handleShapePointerDown(e, id)} style={{ cursor: drawTool === 'cursor' ? 'move' : 'default' }}>
+            {el}{handles}
+          </g>
+        );
+      };
+       const renderShapesOnExportCanvas = (ctx, drawShapes, canvasWidth, canvasHeight, videoWidth, videoHeight, targetTime, isFrameCtx = false) => {
+        // ✅ Usar SIEMPRE los parámetros directos — nunca el estado React videoDimensions
+        const scaleX = canvasWidth / videoWidth;
+        const scaleY = canvasHeight / videoHeight;
+
+        const visible = drawShapes.filter(s => {
+          if (isFrameCtx) return true;
+          if (s.duration === 'infinite' || s.duration === undefined || s.alwaysVisible) return true;
+          const st = s.timeStart ?? 0, d = parseFloat(s.duration) || 3;
+          return targetTime >= st && targetTime <= (st + d);
+        });
+
+        visible.forEach(shape => {
+          ctx.save();
+          ctx.strokeStyle = shape.color;
+          ctx.fillStyle = shape.color + '33';
+          ctx.lineWidth = 4 * scaleX;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+
+          if (shape.type === 'rect') {
+            ctx.beginPath();
+            shape.points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x * scaleX, p.y * scaleY) : ctx.lineTo(p.x * scaleX, p.y * scaleY));
+            ctx.closePath(); ctx.stroke(); ctx.fill();
+
+          } else if (shape.type === 'circle') {
+            const cx = ((shape.startX + shape.currentX) / 2) * scaleX;
+            const cy = ((shape.startY + shape.currentY) / 2) * scaleY;
+            const rx = (Math.abs(shape.currentX - shape.startX) / 2) * scaleX;
+            const ry = (Math.abs(shape.currentY - shape.startY) / 2) * scaleY;
+            ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI); ctx.stroke(); ctx.fill();
+
+          } else if (shape.type === 'freehand') {
+            if (shape.points.length < 2) { ctx.restore(); return; }
+            ctx.beginPath();
+            shape.points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x * scaleX, p.y * scaleY) : ctx.lineTo(p.x * scaleX, p.y * scaleY));
+            ctx.stroke();
+
+          } else if (shape.type === 'arrow') {
+            const sx = shape.startX * scaleX, sy = shape.startY * scaleY;
+            const ex = shape.currentX * scaleX, ey = shape.currentY * scaleY;
+            const ang = Math.atan2(ey - sy, ex - sx), hl = 18 * scaleX;
+            ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+            ctx.fillStyle = shape.color;
+            ctx.beginPath(); ctx.moveTo(ex, ey);
+            ctx.lineTo(ex - hl * Math.cos(ang - Math.PI / 6), ey - hl * Math.sin(ang - Math.PI / 6));
+            ctx.lineTo(ex - hl * Math.cos(ang + Math.PI / 6), ey - hl * Math.sin(ang + Math.PI / 6));
+            ctx.closePath(); ctx.fill();
+
+          } else if (shape.type === 'arrow_concave' || shape.type === 'arrow_convex') {
+            const [p0, p1, p2] = shape.points;
+            const x0 = p0.x * scaleX, y0 = p0.y * scaleY;
+            const x1 = p1.x * scaleX, y1 = p1.y * scaleY;
+            const x2 = p2.x * scaleX, y2 = p2.y * scaleY;
+            ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(x1, y1, x2, y2); ctx.stroke();
+            const dx = x2 - x1 || x2 - x0, dy = y2 - y1 || y2 - y0;
+            const ang = Math.atan2(dy, dx), hl = 18 * scaleX;
+            ctx.fillStyle = shape.color;
+            ctx.beginPath(); ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - hl * Math.cos(ang - Math.PI / 6), y2 - hl * Math.sin(ang - Math.PI / 6));
+            ctx.lineTo(x2 - hl * Math.cos(ang + Math.PI / 6), y2 - hl * Math.sin(ang + Math.PI / 6));
+            ctx.closePath(); ctx.fill();
+
+          } else if (shape.type === 'player_clone') {
+            const minX = Math.min(...shape.points.map(p => p.x)) * scaleX;
+            const minY = Math.min(...shape.points.map(p => p.y)) * scaleY;
+            const maxX = Math.max(...shape.points.map(p => p.x)) * scaleX;
+            const maxY = Math.max(...shape.points.map(p => p.y)) * scaleY;
+            if (shape.dataUrl) {
+              const img = new Image(); img.src = shape.dataUrl;
+              ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+              if (img.complete) ctx.drawImage(img, minX, minY, maxX - minX, maxY - minY);
+            }
+            if (shape.trailPoints?.length > 1) {
+              ctx.setLineDash([8 * scaleX, 6 * scaleX]);
+              ctx.strokeStyle = shape.color; ctx.lineWidth = 3 * scaleX;
+              ctx.beginPath();
+              shape.trailPoints.forEach((p, i) => i === 0 ? ctx.moveTo(p.x * scaleX, p.y * scaleY) : ctx.lineTo(p.x * scaleX, p.y * scaleY));
+              ctx.stroke(); ctx.setLineDash([]);
+            }
+
+          } else if (shape.type === 'text') {
+            // ✅ FIX DEFINITIVO: todo en el mismo sistema de coordenadas escalado
+            const tx = shape.startX * scaleX;
+            const ty = shape.startY * scaleY;
+            const tw = (shape.width  || 280) * scaleX;
+            const th = (shape.height || 100) * scaleY;
+            const fSize = (shape.fontSize || 18) * scaleY;
+            const padX  = 12 * scaleX;
+            const padY  = 10 * scaleY;
+            const rad   =  8 * scaleX;
+
+            if (shape.hasBg) {
+              ctx.fillStyle   = shape.bgColor || '#000000';
+              ctx.globalAlpha = shape.bgOpacity ?? 0.8;
+              if (shape.hasShadow) {
+                ctx.shadowColor   = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur    = 12 * scaleX;
+                ctx.shadowOffsetY = 4  * scaleY;
+              }
+              canvasRoundRect(ctx, tx, ty, tw, th, rad);
+              ctx.fill();
+              ctx.globalAlpha   = 1;
+              ctx.shadowColor   = 'transparent';
+              ctx.shadowBlur    = 0;
+              ctx.shadowOffsetY = 0;
+            }
+
+            const fontMap = {
+              chalk:  '"Comic Sans MS","Chalkboard SE",cursive',
+              impact: 'Impact,Charcoal,sans-serif',
+              sans:   'Inter,sans-serif',
+              serif:  'Georgia,serif',
+              mono:   '"Courier New",Courier,monospace',
+            };
+            ctx.font = [
+              shape.isBold   ? 'bold'   : '',
+              shape.isItalic ? 'italic' : '',
+              `${fSize}px`,
+              fontMap[shape.fontFamily] || fontMap.chalk
+            ].filter(Boolean).join(' ');
+
+            ctx.textBaseline = 'top';
+            ctx.fillStyle    = shape.color;
+
+            if (shape.hasShadow) {
+              ctx.shadowColor   = 'rgba(0,0,0,0.95)';
+              ctx.shadowBlur    = 3  * scaleX;
+              ctx.shadowOffsetX = 2  * scaleX;
+              ctx.shadowOffsetY = 2  * scaleY;
+            }
+
+            const maxW = tw - padX * 2;
+            const lh   = fSize * 1.4;
+            let cy = ty + padY;
+
+            (shape.text || '').split('\n').forEach(para => {
+              const words = para.split(' ');
+              let line = '';
+              words.forEach((w, i) => {
+                const test = line + w + ' ';
+                if (ctx.measureText(test).width > maxW && i > 0) {
+                  ctx.fillText(line.trimEnd(), tx + padX, cy, maxW);
+                  line = w + ' '; cy += lh;
+                } else { line = test; }
+              });
+              if (line.trim()) ctx.fillText(line.trimEnd(), tx + padX, cy, maxW);
+              cy += lh;
+            });
+
+            ctx.shadowColor   = 'transparent';
+            ctx.shadowBlur    = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+          }
+
+          ctx.restore();
+        });
+      };
+
+      // ── Capture frame ──
+      const captureFrameToProject = async () => {
+        const video = videoRef.current, svg = svgRef.current;
+        if (!video || !videoSrc) { showToast("Cargá un video primero", "warning"); return; }
+        showToast("Procesando captura...", "info");
+        const canvas = document.createElement('canvas');
+        canvas.width  = videoDimensions.width;
+        canvas.height = videoDimensions.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (shapes.length > 0 && svg) {
+          const clone = svg.cloneNode(true);
+          clone.setAttribute('width',  videoDimensions.width);
+          clone.setAttribute('height', videoDimensions.height);
+          clone.setAttribute('xmlns',  'http://www.w3.org/2000/svg');
+          const blob = new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml;charset=utf-8' });
+          const url  = URL.createObjectURL(blob);
+          await new Promise(res => {
+            const img = new Image();
+            img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); URL.revokeObjectURL(url); res(); };
+            img.src = url;
+          });
+        }
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setFrames(prev => [...prev, { id: `frame-${Date.now()}`, dataUrl, time: video.currentTime, timestamp: Date.now(), shapes: [...shapes] }].sort((a, b) => a.time - b.time));
+        showToast("Captura guardada en Fotos");
+      };
+
+      useEffect(() => {
+        if (isPlaying && shapes.length > 0 && !isPlayCompActive && !selectedCut && editingContext.type === 'global') {
+          setShapes([]); setSelectedShapeId(null);
+        }
+      }, [isPlaying]);
+
+      // ── Cut context handlers ──
+      const playCut = (cut) => {
+        if (!videoRef.current) return;
+        setIsPlayCompActive(false); setSelectedCut(cut);
+        setEditingContext({ type: 'global', id: null });
+        setShapes(cut.shapes || []);
+        videoRef.current.currentTime = Math.max(0, cut.start);
+        videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+      };
+
+      const startEditCutContext = (cut) => {
+        if (!videoRef.current) return;
+        videoRef.current.pause(); setIsPlaying(false);
+        setIsPlayCompActive(false); setSelectedCut(null);
+        prevContextRef.current = { type: 'cut', id: cut.id };
+        setShapes(cut.shapes || []);
+        setEditingContext({ type: 'cut', id: cut.id });
+        videoRef.current.currentTime = cut.start;
+        showToast(`Editando pizarra: ${cut.categoryName}`, "info");
+      };
+
+      const startEditFrameContext = (frame) => {
+        if (!videoRef.current) return;
+        videoRef.current.pause(); setIsPlaying(false);
+        setIsPlayCompActive(false); setSelectedCut(null);
+        prevContextRef.current = { type: 'frame', id: frame.id };
+        setShapes(frame.shapes || []);
+        setEditingContext({ type: 'frame', id: frame.id });
+        videoRef.current.currentTime = frame.time;
+        showToast(`Editando pizarra de foto @ ${formatTime(frame.time)}`, "info");
+      };
+
+      const saveContextAndClose = () => {
+        setEditingContext({ type: 'global', id: null });
+        setShapes([]); setSelectedShapeId(null);
+        showToast("Pizarra guardada");
+      };
+
+      const playCompilationInApp = () => {
+        if (!videoSrc || !videoRef.current) { showToast("Cargá el video primero", "warning"); return; }
+        const pl = selectedCutsForMerge.map(id => cuts.find(c => c.id === id) || frames.find(f => f.id === id)).filter(Boolean);
+        if (!pl.length) { showToast("Seleccioná al menos un corte", "warning"); return; }
+        setEditingContext({ type: 'global', id: null }); setSelectedCut(null);
+        setIsPlayCompActive(true); executePlayCompIndex(0, pl);
+      };
+
+      const stopCompilationPlay = () => {
+        if (compTimerRef.current) clearTimeout(compTimerRef.current);
+        setIsPlayCompActive(false); setActiveCompFrame(null); setShapes([]);
+        if (videoRef.current) { videoRef.current.pause(); setIsPlaying(false); }
+        showToast("Compilado detenido", "info");
+      };
+
+      const deleteCut = (id) => setConfirmModal({
+        isOpen: true, title: "Eliminar Corte", message: "¿Borrar este corte?",
+        onConfirm: () => {
+          setCuts(prev => prev.filter(c => c.id !== id));
+          setSelectedCutsForMerge(prev => prev.filter(i => i !== id));
+          if (selectedCut?.id === id) setSelectedCut(null);
+          if (editingContext.id === id) setEditingContext({ type: 'global', id: null });
+          showToast("Corte eliminado", "info");
+          setConfirmModal(p => ({ ...p, isOpen: false }));
+        }
+      });
+
+      const saveBoardAsTacticalCut = () => {
+        if (!videoSrc || !videoRef.current) { showToast("Cargá un video primero", "warning"); return; }
+        videoRef.current.pause(); setIsPlaying(false);
+        const t = videoRef.current.currentTime, dur = videoRef.current.duration || duration;
+        const cat = categories[0] || { id: 'generic', name: 'Análisis', color: '#ef4444', lead: 5, lag: 15 };
+        const start = Math.max(0, t - (parseFloat(cat.lead) || 5));
+        const end   = dur ? Math.min(dur, t + (parseFloat(cat.lag) || 15)) : t + (parseFloat(cat.lag) || 15);
+        const id = `cut-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+        setCuts(prev => [...prev, { id, categoryId: cat.id, categoryName: `Pizarra: ${cat.name}`, color: cat.color, start: +start.toFixed(1), end: +end.toFixed(1), notes: '', shapes: [...shapes] }].sort((a, b) => a.start - b.start));
+        setSelectedCutsForMerge(prev => [...prev, id]);
+        setShapes([]); setSelectedShapeId(null);
+        showToast("Pizarra guardada como corte"); setActiveTab('list');
+      };
+
+      // ────────────────────────────────────────────
+      //  EXPORTAR CLIP INDIVIDUAL
+      // ────────────────────────────────────────────
+      const exportVideoClip = async (cut) => {
+        const video = videoRef.current; if (!video || !videoSrc) return;
+        video.pause(); setIsPlaying(false); setSelectedCut(null); setIsPlayCompActive(false);
+        setIsExporting(true); setExportProgress(0); setExportingName(cut.categoryName);
+        const W = video.videoWidth || 1280, H = video.videoHeight || 720;
+        const ec = document.createElement('canvas'); ec.width = W; ec.height = H;
+        const eCtx = ec.getContext('2d', { willReadFrequently: false });
+        eCtx.imageSmoothingEnabled = true; eCtx.imageSmoothingQuality = 'high';
+        const stream = ec.captureStream(30);
+        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus' : 'video/webm';
+        recordedChunksRef.current = [];
+        try {
+          const mr = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 });
+          mediaRecorderRef.current = mr;
+          mr.ondataavailable = e => { if (e.data?.size > 0) recordedChunksRef.current.push(e.data); };
+          mr.onstop = () => {
+            const blob = new Blob(recordedChunksRef.current, { type: mime });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a'); a.href = url;
+            a.download = `clip_${cut.categoryName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Math.floor(cut.start)}s.webm`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            setIsExporting(false); showToast("Clip exportado");
+          };
+          video.currentTime = cut.start;
+          let rafId = null;
+          const onSeeked = () => {
+            video.removeEventListener('seeked', onSeeked);
+            mr.start(); video.play().then(() => setIsPlaying(true)).catch(() => {});
+            const total = cut.end - cut.start;
+            const draw = () => {
+              if (video.currentTime >= cut.end || video.paused) {
+                if (rafId) cancelAnimationFrame(rafId);
+                mr.stop(); video.pause(); setIsPlaying(false); return;
+              }
+              eCtx.drawImage(video, 0, 0, W, H);
+              // ✅ W, H como videoWidth/Height — scaleX = 1
+              renderShapesOnExportCanvas(eCtx, cut.shapes || [], W, H, W, H, video.currentTime, false);
+              setExportProgress(Math.min(100, Math.floor(((video.currentTime - cut.start) / total) * 100)));
+              rafId = requestAnimationFrame(draw);
+            };
+            rafId = requestAnimationFrame(draw);
+          };
+          video.addEventListener('seeked', onSeeked);
+        } catch(err) { console.error(err); showToast("Error al exportar", "error"); setIsExporting(false); }
+      };
+
+      // ────────────────────────────────────────────
+      //  EXPORTAR UNIFICADO
+      // ────────────────────────────────────────────
+      const exportUnifiedVideo = async () => {
+        const video = videoRef.current; if (!video || !videoSrc) return;
+        const playlist = selectedCutsForMerge.map(id => cuts.find(c => c.id === id) || frames.find(f => f.id === id)).filter(Boolean);
+        if (!playlist.length) { showToast("Seleccioná elementos para unificar", "warning"); return; }
+        video.pause(); setIsPlaying(false); setSelectedCut(null); setIsPlayCompActive(false);
+        setIsExporting(true); setExportProgress(0); setExportingName('Preparando...');
+        const W = video.videoWidth || 1280, H = video.videoHeight || 720;
+        const ec = document.createElement('canvas'); ec.width = W; ec.height = H;
+        const eCtx = ec.getContext('2d', { willReadFrequently: false });
+        eCtx.imageSmoothingEnabled = true; eCtx.imageSmoothingQuality = 'high';
+        const stream  = ec.captureStream(30);
+        const mime    = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus' : 'video/webm';
+        const chunks  = [];
+        const mr      = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 });
+        mr.ondataavailable = e => { if (e.data?.size > 0) chunks.push(e.data); };
+        mr.onstop = () => {
+          const blob = new Blob(chunks, { type: mime });
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement('a'); a.href = url;
+          a.download = `analisis_${activeProject.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.webm`;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+          setIsExporting(false); showToast("Análisis exportado");
+        };
+        let idx = 0, rafId = null;
+        const next = () => {
+          if (idx >= playlist.length) { if (rafId) cancelAnimationFrame(rafId); if (mr.state !== 'inactive') mr.stop(); return; }
+          const item    = playlist[idx];
+          const isFrame = !item.categoryId;
+          setExportingName(`(${idx + 1}/${playlist.length}) ${isFrame ? `Foto @ ${formatTime(item.time)}` : item.categoryName}`);
+          if (isFrame) {
+            const img = new Image();
+            img.onload = () => {
+              if (mr.state === 'inactive') mr.start(); else if (mr.state === 'paused') mr.resume();
+              let ticks = 0;
+              const draw = () => {
+                if (ticks >= 150) {
+                  if (mr.state === 'recording') mr.pause();
+                  idx++; setExportProgress(Math.floor((idx / playlist.length) * 100));
+                  setTimeout(next, 50); return;
+                }
+                eCtx.drawImage(img, 0, 0, W, H);
+                // ✅ W, H — scaleX = 1
+                renderShapesOnExportCanvas(eCtx, item.shapes || [], W, H, W, H, ticks / 30, true);
+                ticks++; rafId = requestAnimationFrame(draw);
+              };
+              rafId = requestAnimationFrame(draw);
+            };
+            img.src = item.dataUrl;
+          } else {
+            video.currentTime = item.start;
+            const onSeeked = () => {
+              video.removeEventListener('seeked', onSeeked);
+              if (mr.state === 'inactive') mr.start(); else if (mr.state === 'paused') mr.resume();
+              video.play().catch(() => {});
+              const draw = () => {
+                if (video.currentTime >= item.end || video.paused) {
+                  video.pause(); if (mr.state === 'recording') mr.pause();
+                  idx++; setExportProgress(Math.floor((idx / playlist.length) * 100));
+                  setTimeout(next, 50); return;
+                }
+                eCtx.drawImage(video, 0, 0, W, H);
+                // ✅ FIX DEFINITIVO: W, H en lugar de video.videoWidth/Height
+                renderShapesOnExportCanvas(eCtx, item.shapes || [], W, H, W, H, video.currentTime, false);
+                rafId = requestAnimationFrame(draw);
+              };
+              rafId = requestAnimationFrame(draw);
+            };
+            video.addEventListener('seeked', onSeeked);
+          }
+        };
+        next();
+      };
+
+      // ── Category handlers ──
+      const handleCategoryChange = (id, field, val) => setCategories(prev => prev.map(c => c.id !== id ? c : { ...c, [field]: field === 'lead' || field === 'lag' ? val === '' ? '' : Math.max(0, parseFloat(val) || 0) : val }));
+
+      const handleAddCategory = (e) => {
+        e.preventDefault();
+        if (!newCatName.trim()) { showToast("Ponéle un nombre", "warning"); return; }
+        const sc = newCatShortcut.trim().toLowerCase().charAt(0);
+        if (sc && categories.some(c => c.shortcut.toLowerCase() === sc)) { showToast(`Atajo '${sc.toUpperCase()}' en uso`, "warning"); return; }
+        setCategories(prev => [...prev, { id: `cat-${Date.now()}`, name: newCatName.trim(), color: newCatColor, lead: parseFloat(newCatLead) || 5, lag: parseFloat(newCatLag) || 20, shortcut: sc || 'sin' }]);
+        setNewCatName(''); setNewCatShortcut('');
+        showToast("Categoría creada");
+      };
+
+      const deleteCategory = (id) => {
+        if (categories.length <= 1) { showToast("Mínimo una categoría", "warning"); return; }
+        setCategories(prev => prev.filter(c => c.id !== id));
+        showToast("Categoría eliminada", "info");
+      };
+
+      // ── Project export/import ──
+      const exportProject = () => {
+        if (!cuts.length && !frames.length) { showToast("No hay datos para exportar", "warning"); return; }
+        const d = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ projectName: activeProject.name, videoName: activeProject.videoName, categories, cuts, frames, selectedCutsForMerge }));
+        const a = document.createElement('a'); a.href = d;
+        a.download = `tacticalcut_${activeProject.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.json`;
+        document.body.appendChild(a); a.click(); a.remove();
+        showToast("Proyecto exportado");
+      };
+
+      const handleImportProject = (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        const r = new FileReader();
+        r.onload = ev => {
+          try {
+            const d = JSON.parse(ev.target.result), id = `proj-${Date.now()}`;
+            setProjects(prev => [...prev, { id, name: d.projectName || f.name.replace('.json', ''), videoName: d.videoName || '', cuts: d.cuts || [], frames: d.frames || [], categories: d.categories || DEFAULT_CATEGORIES, selectedCutsForMerge: d.selectedCutsForMerge || (d.cuts ? d.cuts.map(c => c.id) : []) }]);
+            setActiveProjectId(id); setActiveTab('list');
+            showToast("Proyecto importado");
+          } catch { showToast("JSON inválido", "error"); }
+        };
+        r.readAsText(f);
+      };
+
+      // ── Merge order handlers ──
+      const handleToggleCutCheckbox   = (id) => setSelectedCutsForMerge(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+      const handleSelectAllCuts       = ()   => setSelectedCutsForMerge([...cuts.map(c => c.id), ...frames.map(f => f.id)]);
+      const handleDeselectAllCuts     = ()   => setSelectedCutsForMerge([]);
+      const moveCutInMergeOrder = (index, dir) => {
+        const o = [...selectedCutsForMerge];
+        if (dir === 'up'   && index > 0)              [o[index], o[index - 1]] = [o[index - 1], o[index]];
+        if (dir === 'down' && index < o.length - 1)   [o[index], o[index + 1]] = [o[index + 1], o[index]];
+        setSelectedCutsForMerge(o);
+      };
+
+      // ── Project CRUD ──
+      const handleCreateProject = (e) => {
+        e.preventDefault();
+        if (!newProjName.trim()) { showToast("Escribí el nombre del partido", "warning"); return; }
+        const id = `proj-${Date.now()}`;
+        setProjects(prev => [...prev, { id, name: newProjName.trim(), videoName: '', cuts: [], frames: [], categories: DEFAULT_CATEGORIES, selectedCutsForMerge: [] }]);
+        setActiveProjectId(id); setNewProjName(''); setActiveTab('panel');
+        showToast("Proyecto creado");
+      };
+
+      const switchProject = (id) => {
+        setActiveProjectId(id); setSelectedCut(null); setIsPlayCompActive(false); setIsPlaying(false);
+        setShapes([]); setSelectedShapeId(null); setEditingContext({ type: 'global', id: null });
+        setFocusShape(null); setFocusTool(null);
+        showToast(`Cargaste: ${projects.find(p => p.id === id)?.name}`, "info");
+      };
+
+      const deleteProject = (id, name) => {
+        if (projects.length <= 1) { showToast("Mínimo un proyecto", "warning"); return; }
+        setConfirmModal({
+          isOpen: true, title: "Eliminar Proyecto", message: `¿Borrar "${name}"?`,
+          onConfirm: () => {
+            setProjects(prev => { const f = prev.filter(p => p.id !== id); if (activeProjectId === id) setActiveProjectId(f[0].id); return f; });
+            setLoadedVideos(prev => { const c = { ...prev }; delete c[id]; return c; });
+            setIsPlayCompActive(false); setShapes([]); setEditingContext({ type: 'global', id: null });
+            showToast("Proyecto eliminado", "info"); setConfirmModal(p => ({ ...p, isOpen: false }));
+          }
+        });
+      };
+
+      // ── Computed values ──
+      const selectedShape  = shapes.find(s => s.id === selectedShapeId);
+      const isShapeSelected = !!selectedShape;
+
+      const getEditingContextName = () => {
+        if (editingContext.type === 'cut')   { const c = cuts.find(i => i.id === editingContext.id);   return c ? `"${c.categoryName}"` : ''; }
+        if (editingContext.type === 'frame') { const f = frames.find(i => i.id === editingContext.id); return f ? `Foto @ ${formatTime(f.time)}` : ''; }
+        return '';
+      };
+      return (
+        <div className="min-h-screen bg-gray-950 text-gray-100 font-sans flex flex-col antialiased">
+
+          {/* Toast */}
+          {notification && (
+            <div className={`fixed top-5 right-5 z-50 px-5 py-3 rounded-lg shadow-2xl border flex items-center space-x-2 transition-all
+              ${notification.type === 'success' ? 'bg-green-950/90 border-green-500 text-green-200' :
+                notification.type === 'warning' ? 'bg-yellow-950/90 border-yellow-500 text-yellow-200' :
+                notification.type === 'info'    ? 'bg-blue-950/90 border-blue-500 text-blue-200' :
+                                                  'bg-red-950/90 border-red-500 text-red-200'}`}>
+              <span className="h-2 w-2 rounded-full bg-current animate-ping"/>
+              <span className="font-medium text-sm">{notification.message}</span>
+            </div>
+          )}
+
+          {/* Confirm Modal */}
+          {confirmModal.isOpen && (
+            <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full">
+                <h3 className="text-md font-bold text-white mb-2 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"/>
+                  {confirmModal.title}
+                </h3>
+                <p className="text-xs text-gray-400 mb-6 leading-relaxed">{confirmModal.message}</p>
+                <div className="flex justify-end space-x-3">
+                  <button onClick={() => setConfirmModal(p => ({ ...p, isOpen: false }))} className="px-4 py-2 bg-gray-800 text-xs text-gray-300 rounded-lg">Cancelar</button>
+                  <button onClick={confirmModal.onConfirm} className="px-4 py-2 bg-red-600 hover:bg-red-500 text-xs text-white font-bold rounded-lg">Confirmar</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Export overlay */}
+          {isExporting && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-6 text-center">
+              <div className="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-full">
+                <div className="w-16 h-16 mx-auto mb-4 text-blue-400 rounded-full flex items-center justify-center animate-spin border-4 border-dashed border-blue-500">
+                  <Icons.VideoFile/>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Exportando Video</h3>
+                <p className="text-sm text-gray-400 mb-6">Procesando: <span className="text-blue-400 font-semibold">{exportingName}</span></p>
+                <div className="w-full bg-gray-800 rounded-full h-4 mb-3 overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all" style={{ width: `${exportProgress}%` }}/>
+                </div>
+                <div className="text-sm font-mono text-gray-300 font-bold">{exportProgress}%</div>
+                <p className="text-[11px] text-gray-500 mt-2">Mantené la pestaña activa.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Header */}
+          <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center font-black text-white text-lg shadow-lg">TC</div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">TacticalCut</h1>
+                  <span className="bg-blue-900/30 text-blue-300 text-[11px] px-2.5 py-0.5 rounded-full border border-blue-800/60 font-bold max-w-[200px] truncate">📁 {activeProject.name}</span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium">Análisis y pizarra táctica profesional</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <input type="file" accept="video/*" ref={fileInputRef} className="hidden" onChange={handleVideoUpload}/>
+              <button onClick={() => fileInputRef.current?.click()} className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-lg text-xs font-semibold shadow transition active:scale-95">
+                <Icons.Upload/><span>Vincular Video</span>
+              </button>
+              <input type="file" accept=".json" ref={importInputRef} className="hidden" onChange={handleImportProject}/>
+              <button onClick={() => importInputRef.current?.click()} className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2.5 rounded-lg text-xs font-semibold border border-gray-700 transition active:scale-95">
+                <Icons.Upload/><span>Importar (.json)</span>
+              </button>
+              <button onClick={exportProject} className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2.5 rounded-lg text-xs font-semibold border border-gray-700 transition active:scale-95">
+                <Icons.Download/><span>Exportar Datos</span>
+              </button>
+            </div>
+          </header>
+
+          {/* Main */}
+          <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+
+            {/* Left: Player */}
+            <div className="flex-1 flex flex-col bg-black relative border-r border-gray-800">
+
+              {/* Editing context banner */}
+              {editingContext.type !== 'global' && (
+                <div className="bg-amber-500 text-gray-950 font-semibold text-xs px-4 py-2 flex justify-between items-center z-30 shadow-lg border-b border-amber-600">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 rounded-full bg-gray-950 animate-ping"/>
+                    <span>📍 Editando pizarra de: {getEditingContextName()}</span>
+                  </div>
+                  <button onClick={saveContextAndClose} className="bg-gray-900 text-amber-400 hover:bg-gray-950 text-[11px] font-extrabold px-3 py-1 rounded-lg flex items-center space-x-1">
+                    <Icons.Check/><span>Guardar y Cerrar</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Foco seguidor banner */}
+              {focusTool && (
+                <div className="bg-indigo-950/80 border-b border-indigo-500/40 text-indigo-200 text-xs px-4 py-2 flex justify-between items-center z-30">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"/>
+                    <span>🔍 <strong>Foco activo:</strong> {
+                      focusTool === 'spotlight' ? 'Spotlight' :
+                      focusTool === 'zoom'      ? `Zoom ${zoomLevel}x` :
+                      focusTool === 'tracker'   ? 'Marcador Seguidor' : 'Cuadro Seguidor'
+                    } — Clic para posicionar, arrastrá para mover</span>
+                  </div>
+                  <button onClick={() => { setFocusTool(null); setFocusShape(null); }} className="bg-indigo-700 hover:bg-indigo-600 text-white text-[11px] font-bold px-3 py-1 rounded-lg">
+                    Desactivar
+                  </button>
+                </div>
+              )}
+
+              {/* Video area */}
+              <div className="flex-1 flex items-center justify-center overflow-hidden relative min-h-[40vh] max-h-[70vh] lg:max-h-none p-4">
+                {videoSrc ? (
+                  <div className="relative max-w-full max-h-full shadow-2xl rounded-lg overflow-hidden"
+                    style={{ aspectRatio: `${videoDimensions.width}/${videoDimensions.height}`, width: '100%', height: '100%' }}>
+                    <video
+                      ref={videoRef} src={videoSrc}
+                      className="w-full h-full object-cover"
+                      onClick={focusTool ? undefined : togglePlay}
+                      onTimeUpdate={handleTimeUpdate}
+                      onLoadedMetadata={handleLoadedMetadata}
+                      onSeeked={() => { isTransitioningRef.current = false; }}
+                    />
+                    {activeCompFrame && (
+                      <img src={activeCompFrame.dataUrl} className="absolute inset-0 w-full h-full object-cover z-20" alt=""/>
+                    )}
+                    <svg
+                      ref={svgRef}
+                      viewBox={`0 0 ${videoDimensions.width} ${videoDimensions.height}`}
+                      onPointerDown={handlePointerDown}
+                      onPointerMove={handlePointerMove}
+                      onPointerUp={handlePointerUp}
+                      onPointerLeave={handlePointerUp}
+                      style={{ pointerEvents: (isPlaying || isPlayCompActive) ? 'none' : 'auto' }}
+                      className={`absolute inset-0 w-full h-full z-30 touch-none ${drawTool === 'text' ? 'cursor-text' : focusTool ? 'cursor-crosshair' : ''}`}
+                    >
+                      {shapes.map(s => renderShape(s, false))}
+                      {currentShape && renderShape(currentShape, true)}
+                      {renderFocusOverlay()}
+                    </svg>
+                  </div>
+                ) : activeProject.videoName ? (
+                  <div className="text-center max-w-md p-8 border border-dashed border-gray-800 rounded-2xl bg-gray-900/60">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-blue-400/20 text-blue-400 rounded-full flex items-center justify-center"><Icons.VideoFile/></div>
+                    <h2 className="text-lg font-bold mb-2">Se necesita el archivo de video</h2>
+                    <p className="text-xs text-gray-400 mb-4">Archivo: <span className="text-blue-300 font-mono">{activeProject.videoName}</span></p>
+                    <button onClick={() => fileInputRef.current?.click()} className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2.5 px-6 rounded-lg">Asociar Video</button>
+                  </div>
+                ) : (
+                  <div className="text-center max-w-md p-8 border border-dashed border-gray-800 rounded-2xl bg-gray-900/40">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center text-blue-500"><Icons.Upload/></div>
+                    <h2 className="text-lg font-bold mb-2">Sin video asociado</h2>
+                    <p className="text-xs text-gray-400 mb-6">Subí tu grabación para <span className="text-blue-400 font-bold">"{activeProject.name}"</span></p>
+                    <button onClick={() => fileInputRef.current?.click()} className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs py-2 px-5 rounded-lg">Elegir archivo</button>
+                  </div>
+                )}
+
+                {selectedCut && (
+                  <div className="absolute top-5 left-5 bg-gradient-to-r from-red-600 to-rose-500 text-white px-4 py-1.5 rounded-full text-xs font-bold flex items-center shadow-2xl animate-pulse">
+                    <span className="w-2.5 h-2.5 bg-white rounded-full mr-2 animate-ping"/>
+                    Reproduciendo: {selectedCut.categoryName}
+                  </div>
+                )}
+
+                {isPlayCompActive && (
+                  <div className="absolute top-5 left-5 right-5 flex justify-between items-center bg-gray-900/95 border border-blue-500/30 p-4 rounded-xl shadow-2xl backdrop-blur-sm z-40">
+                    <div className="flex items-center space-x-3">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"/>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"/>
+                      </span>
+                      <div className="text-xs">
+                        <span className="font-bold text-blue-400 uppercase tracking-wider block">COMPILADO EN VIVO</span>
+                        <span className="text-gray-300">{compPlayIndex + 1}/{selectedCutsForMerge.length}</span>
+                      </div>
+                    </div>
+                    <button onClick={stopCompilationPlay} className="bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold py-1.5 px-3.5 rounded-lg">Detener</button>
+                  </div>
+                )}
+              </div>
+
+              {/* Drawing Toolbar */}
+              {videoSrc && (
+                <div className="bg-gray-950 border-t border-b border-gray-800 px-5 py-2.5 flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center flex-wrap gap-1.5">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase mr-1">Pizarra:</span>
+
+                    {/* Herramientas de dibujo */}
+                    {[
+                      { tool: 'cursor',       icon: <Icons.Pointer/>,      title: 'Cursor' },
+                      null,
+                      { tool: 'freehand',     icon: <Icons.Pen/>,          title: 'Trazo Libre' },
+                      { tool: 'arrow',        icon: <Icons.ArrowShape/>,   title: 'Flecha Recta' },
+                      { tool: 'arrow_concave',icon: <Icons.ArrowConcave/>, title: 'Flecha Cóncava' },
+                      { tool: 'arrow_convex', icon: <Icons.ArrowConvex/>,  title: 'Flecha Convexa' },
+                      { tool: 'rect',         icon: <Icons.Square/>,       title: 'Rectángulo' },
+                      { tool: 'circle',       icon: <Icons.CircleShape/>,  title: 'Círculo' },
+                      { tool: 'clone',        icon: <Icons.Clone/>,        title: 'Clonar Jugador' },
+                      { tool: 'text',         icon: <Icons.TextIcon/>,     title: 'Texto' },
+                    ].map((item, i) => item === null
+                      ? <div key={i} className="w-px h-5 bg-gray-800 mx-1"/>
+                      : <button key={item.tool}
+                          onClick={() => { setDrawTool(item.tool); setSelectedShapeId(null); setFocusTool(null); setFocusShape(null); }}
+                          className={`p-2 rounded-lg transition-colors ${drawTool === item.tool && !focusTool ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+                          title={item.title}>
+                          {item.icon}
+                        </button>
+                    )}
+
+                    <div className="w-px h-5 bg-gray-800 mx-1"/>
+
+                    {/* FOCO SEGUIDOR */}
+                    <span className="text-[10px] font-bold text-gray-500 uppercase mx-1">Foco:</span>
+                    {[
+                      { tool: 'spotlight', icon: <Icons.Spotlight/>, title: 'Spotlight',        active: 'bg-yellow-600' },
+                      { tool: 'zoom',      icon: <Icons.ZoomIn/>,    title: 'Zoom',             active: 'bg-orange-600' },
+                      { tool: 'tracker',   icon: <Icons.Crosshair/>, title: 'Marcador Seguidor',active: 'bg-green-600'  },
+                      { tool: 'focusbox',  icon: <Icons.FocusBox/>,  title: 'Cuadro Seguidor',  active: 'bg-blue-600'   },
+                    ].map(item => (
+                      <button key={item.tool}
+                        onClick={() => handleFocusToolSelect(item.tool)}
+                        className={`p-2 rounded-lg transition-colors ${focusTool === item.tool ? `${item.active} text-white` : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+                        title={item.title}>
+                        {item.icon}
+                      </button>
+                    ))}
+
+                    {/* Selector de nivel de zoom */}
+                    {focusTool === 'zoom' && (
+                      <div className="flex items-center gap-1 bg-gray-900 px-2 py-1 rounded border border-gray-700 ml-1">
+                        <span className="text-[10px] text-gray-400 font-bold">Zoom:</span>
+                        {[1.5, 2, 3, 4].map(z => (
+                          <button key={z} onClick={() => setZoomLevel(z)}
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition ${zoomLevel === z ? 'bg-orange-600 text-white' : 'text-gray-400 hover:text-white'}`}>
+                            {z}x
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="w-px h-5 bg-gray-800 mx-1"/>
+
+                    {/* Paleta de colores */}
+                    <div className="flex items-center space-x-1">
+                      {COLOR_PALETTE.slice(0, 5).map(c => (
+                        <button key={c.hex} onClick={() => setDrawColor(c.hex)}
+                          className={`w-5 h-5 rounded-full border transition-transform ${drawColor === c.hex ? 'border-white scale-110' : 'border-transparent hover:scale-110'}`}
+                          style={{ backgroundColor: c.hex }}/>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-1.5">
+                    {editingContext.type === 'global' && shapes.length > 0 && (
+                      <button onClick={saveBoardAsTacticalCut} className="p-2 text-amber-400 hover:bg-amber-500/10 rounded-lg text-xs flex items-center gap-1.5 font-bold border border-amber-500/30 mr-1.5 animate-pulse">
+                        <Icons.SaveDisk/><span>Guardar como Corte</span>
+                      </button>
+                    )}
+                    <button onClick={captureFrameToProject} className="p-2 text-green-400 hover:bg-gray-800 rounded-lg" title="Capturar fotograma"><Icons.Camera/></button>
+                    <div className="w-px h-5 bg-gray-800 mx-1"/>
+                    <button onClick={() => setShapes(p => p.slice(0, -1))} disabled={!shapes.length} className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 disabled:opacity-30 rounded-lg" title="Deshacer"><Icons.Undo/></button>
+                    <button onClick={() => { setShapes([]); setSelectedShapeId(null); }} disabled={!shapes.length} className="p-2 text-red-400 hover:text-red-300 hover:bg-gray-800 disabled:opacity-30 rounded-lg" title="Limpiar"><Icons.Eraser/></button>
+                  </div>
+                </div>
+              )}
+
+              {/* Player controls */}
+              <div className="bg-gray-900 p-5">
+                <div className="relative mb-5 pt-2 pb-1">
+                  <div className="h-3 bg-gray-800 rounded-full cursor-pointer relative shadow-inner" onClick={handleProgressClick}>
+                    {duration > 0 && cuts.map(c => (
+                      <div key={c.id} title={c.categoryName} className="absolute h-full opacity-70 top-0 hover:opacity-100 transition-opacity"
+                        style={{ left: `${(c.start / duration) * 100}%`, width: `${((c.end - c.start) / duration) * 100}%`, backgroundColor: c.color }}/>
+                    ))}
+                    <div className="h-full bg-blue-500 rounded-full relative pointer-events-none" style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}>
+                      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border border-blue-600 rounded-full shadow-lg"/>
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-[10px] text-gray-500 mt-1.5 font-mono">
+                    <span>00:00</span><span>Línea de tiempo</span><span>{formatTime(duration)}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className="flex items-center space-x-4">
+                    <button onClick={togglePlay} disabled={!videoSrc || isPlayCompActive} className="p-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 text-white rounded-full shadow-lg transition active:scale-90">
+                      {isPlaying ? <Icons.Pause/> : <Icons.Play/>}
+                    </button>
+                    <div className="flex flex-col">
+                      <div className="text-sm font-mono tracking-wider font-semibold">
+                        <span className="text-blue-400">{formatTime(currentTime)}</span>
+                        <span className="text-gray-500 mx-1">/</span>
+                        <span className="text-gray-400">{formatTime(duration)}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-500">Atajos: [Espacio] Play · [←/→] ±5s · [Supr] Borrar figura</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1.5 bg-gray-950 p-1.5 rounded-lg border border-gray-800">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase px-2">Vel:</span>
+                    {[0.25, 0.5, 1, 1.5, 2].map(r => (
+                      <button key={r} onClick={() => handleSpeedChange(r)} disabled={!videoSrc || isPlayCompActive}
+                        className={`px-2.5 py-1 rounded text-xs font-bold transition ${playbackRate === r ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white disabled:opacity-40'}`}>
+                        {r}x
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Sidebar */}
+            <div className="w-full lg:w-[420px] bg-gray-900 flex flex-col h-[60vh] lg:h-auto overflow-hidden border-l border-gray-800">
+
+              {/* Shape Inspector */}
+              {isShapeSelected && (
+                <div className="border-b border-amber-500/20 p-4 space-y-4 max-h-[55vh] overflow-y-auto" style={{ background: 'rgba(120,80,10,0.08)' }}>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-extrabold uppercase text-amber-400 tracking-wider">⚙️ Inspector</span>
+                    <button onClick={() => setSelectedShapeId(null)} className="text-[10px] bg-gray-800 px-2 py-0.5 rounded text-gray-300 font-bold">Cerrar</button>
+                  </div>
+
+                  {editingContext.type !== 'frame' && (
+                    <div className="bg-gray-950 p-3.5 rounded-xl border border-gray-800 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-bold uppercase text-gray-400">⏱ Duración:</span>
+                        <span className="text-[10px] font-mono text-gray-500">Inicia: {formatTime(selectedShape.timeStart)}</span>
+                      </div>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {[1, 2, 3, 5].map(s => (
+                          <button key={s} type="button"
+                            onClick={() => setShapes(p => p.map(sh => sh.id === selectedShapeId ? { ...sh, duration: s } : sh))}
+                            className={`py-2 rounded-lg text-xs font-black transition ${selectedShape.duration === s ? 'bg-blue-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800'}`}>
+                            {s}s
+                          </button>
+                        ))}
+                        <button type="button"
+                          onClick={() => setShapes(p => p.map(sh => sh.id === selectedShapeId ? { ...sh, duration: 'infinite' } : sh))}
+                          className={`py-2 rounded-lg text-xs font-black transition ${selectedShape.duration === 'infinite' || !selectedShape.duration ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'}`}>
+                          ∞
+                        </button>
+                      </div>
+                      {selectedShape.duration !== 'infinite' && selectedShape.duration !== undefined && (
+                        <div className="flex items-center justify-between bg-gray-900/60 px-3 py-2 rounded-lg border border-gray-800">
+                          <span className="text-[10px] text-gray-400 font-bold">Personalizado:</span>
+                          <div className="flex items-center space-x-1.5">
+                            <button type="button"
+                              onClick={() => setShapes(p => p.map(sh => sh.id === selectedShapeId ? { ...sh, duration: Math.max(0.5, +((parseFloat(sh.duration) || 1) - 0.5).toFixed(1)) } : sh))}
+                              className="px-2 py-1 bg-gray-800 text-white text-[10px] font-black rounded">-0.5s</button>
+                            <span className="font-mono text-xs font-bold text-blue-400 bg-gray-950 px-3 py-1 rounded border border-gray-800">{selectedShape.duration}s</span>
+                            <button type="button"
+                              onClick={() => setShapes(p => p.map(sh => sh.id === selectedShapeId ? { ...sh, duration: +((parseFloat(sh.duration) || 1) + 0.5).toFixed(1) } : sh))}
+                              className="px-2 py-0.5 bg-gray-800 text-white text-xs rounded font-bold">+0.5s</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedShape.type === 'text' && (
+                    <>
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Contenido:</label>
+                        <textarea rows="3" value={selectedShape.text || ''}
+                          onChange={e => setShapes(p => p.map(s => s.id === selectedShapeId ? { ...s, text: e.target.value } : s))}
+                          className="w-full bg-gray-950 border border-gray-700 p-2 rounded text-xs text-white focus:outline-none focus:border-amber-500 resize-none"/>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Fuente:</label>
+                          <select value={selectedShape.fontFamily || 'chalk'}
+                            onChange={e => setShapes(p => p.map(s => s.id === selectedShapeId ? { ...s, fontFamily: e.target.value } : s))}
+                            className="w-full bg-gray-950 border border-gray-700 p-2 rounded text-xs text-gray-200 focus:outline-none focus:border-amber-500">
+                            <option value="chalk">✏️ Pizarra</option>
+                            <option value="impact">💥 Impacto</option>
+                            <option value="sans">💻 Limpio</option>
+                            <option value="serif">📚 Serif</option>
+                            <option value="mono">📊 Mono</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Fondo:</label>
+                          <button type="button"
+                            onClick={() => setShapes(p => p.map(s => s.id === selectedShapeId ? { ...s, hasBg: !s.hasBg } : s))}
+                            className={`w-full text-xs font-bold p-2 rounded border ${selectedShape.hasBg ? 'bg-amber-500/10 border-amber-600 text-amber-300' : 'bg-gray-950 border-gray-700 text-gray-500'}`}>
+                            {selectedShape.hasBg ? '🟢 Con Fondo' : '⚪ Sin Fondo'}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[{ label: 'Color Texto', key: 'color', extra: {} }, { label: 'Color Fondo', key: 'bgColor', extra: { hasBg: true } }].map(({ label, key, extra }) => (
+                          <div key={key}>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{label}:</label>
+                            <div className="flex flex-wrap gap-1 bg-gray-950 p-2 rounded border border-gray-700">
+                              {COLOR_PALETTE.map(c => (
+                                <button key={c.hex} type="button"
+                                  onClick={() => setShapes(p => p.map(s => s.id === selectedShapeId ? { ...s, [key]: c.hex, ...extra } : s))}
+                                  style={{ backgroundColor: c.hex }}
+                                  className={`w-4 h-4 rounded-full border border-black/30 transition-transform ${selectedShape[key] === c.hex ? 'scale-125 ring-2 ring-amber-500' : 'hover:scale-110'}`}/>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-3 bg-gray-950 p-3 rounded border border-gray-700">
+                        {[{ label: 'Tamaño letra', key: 'fontSize', min: 12, max: 60, def: 18 }, { label: 'Ancho caja', key: 'width', min: 100, max: 800, def: 280 }].map(({ label, key, min, max, def }) => (
+                          <div key={key}>
+                            <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                              <span className="font-bold uppercase">{label}:</span>
+                              <span className="font-mono">{selectedShape[key] || def}px</span>
+                            </div>
+                            <input type="range" min={min} max={max} value={selectedShape[key] || def}
+                              onChange={e => setShapes(p => p.map(s => s.id === selectedShapeId ? { ...s, [key]: parseInt(e.target.value) } : s))}
+                              className="w-full accent-amber-500 h-1 bg-gray-800 rounded"/>
+                          </div>
+                        ))}
+                        {selectedShape.hasBg && (
+                          <div>
+                            <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                              <span className="font-bold uppercase">Opacidad fondo:</span>
+                              <span className="font-mono">{Math.round((selectedShape.bgOpacity ?? 0.8) * 100)}%</span>
+                            </div>
+                            <input type="range" min={10} max={100} value={Math.round((selectedShape.bgOpacity ?? 0.8) * 100)}
+                              onChange={e => setShapes(p => p.map(s => s.id === selectedShapeId ? { ...s, bgOpacity: parseFloat(e.target.value) / 100 } : s))}
+                              className="w-full accent-amber-500 h-1 bg-gray-800 rounded"/>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        {[{ label: 'B (Negrita)', key: 'isBold' }, { label: 'I (Cursiva)', key: 'isItalic' }, { label: 'Sombra', key: 'hasShadow' }].map(({ label, key }) => (
+                          <button key={key} type="button"
+                            onClick={() => setShapes(p => p.map(s => s.id === selectedShapeId ? { ...s, [key]: !s[key] } : s))}
+                            className={`flex-1 py-1.5 text-xs font-bold rounded border ${selectedShape[key] ? 'bg-amber-500/20 border-amber-500 text-amber-300' : 'bg-gray-950 border-gray-700 text-gray-500'}`}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {selectedShape.type !== 'text' && (
+                    <div className="space-y-3">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Color:</label>
+                      <div className="flex flex-wrap gap-1 bg-gray-950 p-2 rounded border border-gray-700">
+                        {COLOR_PALETTE.map(c => (
+                          <button key={c.hex} type="button"
+                            onClick={() => setShapes(p => p.map(s => s.id === selectedShapeId ? { ...s, color: c.hex } : s))}
+                            style={{ backgroundColor: c.hex }}
+                            className={`w-4 h-4 rounded-full border border-black/30 transition-transform ${selectedShape.color === c.hex ? 'scale-125 ring-2 ring-amber-500' : 'hover:scale-110'}`}/>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => { setShapes(p => p.filter(s => s.id !== selectedShapeId)); setSelectedShapeId(null); showToast("Figura eliminada", "info"); }}
+                        className="w-full bg-red-950/60 hover:bg-red-900 border border-red-500/30 text-red-200 text-xs font-bold py-2 rounded">
+                        🗑️ Eliminar Figura
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tabs */}
+              <div className="flex border-b border-gray-800 bg-gray-950 text-[10px] md:text-xs flex-shrink-0">
+                {[
+                  { id: 'projects', icon: <Icons.Folder/>, label: 'Proyectos' },
+                  { id: 'panel',    icon: <Icons.Tag/>,    label: 'Botonera' },
+                  { id: 'list',     icon: <Icons.List/>,   label: `Unificar (${selectedCutsForMerge.length})` },
+                  { id: 'frames',   icon: <Icons.Image/>,  label: `Fotos (${frames.length})` },
+                  { id: 'config',   icon: <Icons.Settings/>, label: 'Ajustes' },
+                ].map(t => (
+                  <button key={t.id} onClick={() => setActiveTab(t.id)}
+                    className={`flex-1 py-4 font-bold uppercase tracking-wider flex justify-center items-center space-x-1.5 border-b-2 transition-all ${activeTab === t.id ? 'border-blue-500 text-blue-400 bg-gray-900/20' : 'border-transparent text-gray-400 hover:text-gray-200'}`}>
+                    {t.icon}<span className="hidden sm:inline">{t.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab content */}
+              <div className="flex-1 overflow-y-auto p-5 bg-gray-900/60" style={{ scrollbarWidth: 'thin', scrollbarColor: '#334155 #0f172a' }}>
+
+                {/* Projects */}
+                {activeTab === 'projects' && (
+                  <div className="space-y-6">
+                    <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                      <h3 className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><Icons.Plus/>Nuevo Proyecto</h3>
+                      <form onSubmit={handleCreateProject} className="space-y-3">
+                        <input type="text" placeholder="Ej: Libertad vs Guaraní" value={newProjName} onChange={e => setNewProjName(e.target.value)}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"/>
+                        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded-lg text-xs font-bold text-white transition active:scale-95">Crear Proyecto</button>
+                      </form>
+                    </div>
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Partidos Guardados</h3>
+                      {projects.map(p => {
+                        const isAct = p.id === activeProjectId;
+                        return (
+                          <div key={p.id} className={`p-4 rounded-xl border flex flex-col gap-3 ${isAct ? 'bg-blue-900/20 border-blue-600/50' : 'bg-gray-800 border-gray-700'}`}>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-bold text-sm text-gray-100 flex items-center gap-2">
+                                  {p.name}
+                                  {isAct && <span className="bg-blue-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">Activo</span>}
+                                </h4>
+                                <p className="text-[11px] text-gray-500 mt-1">{p.videoName || 'Sin video'}</p>
+                              </div>
+                              <button onClick={() => deleteProject(p.id, p.name)} className="text-red-400 hover:text-red-300 p-1.5 rounded-lg"><Icons.Trash/></button>
+                            </div>
+                            <div className="flex justify-between items-center pt-2 border-t border-gray-700/60">
+                              <span className="text-[10px] text-gray-400 font-mono">{p.cuts.length} cortes · {(p.frames || []).length} fotos</span>
+                              {!isAct && <button onClick={() => switchProject(p.id)} className="text-xs bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 font-bold py-1 px-3.5 rounded-lg">Cargar</button>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Panel */}
+                {activeTab === 'panel' && (
+                  <div className="space-y-4">
+                    <div className="bg-gray-800 p-3.5 rounded-xl border border-gray-700 text-xs text-gray-400 leading-relaxed">
+                      🎬 <strong>Análisis:</strong> Usá los botones o atajos de teclado. Proyecto: <strong className="text-blue-400">{activeProject.name}</strong>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {categories.map(cat => (
+                        <button key={cat.id} onClick={() => triggerCut(cat)}
+                          style={{ borderLeftColor: cat.color, borderLeftWidth: '6px' }}
+                          className="bg-gray-800 hover:bg-gray-700 p-4 rounded-xl border border-gray-700 flex flex-col items-start justify-between text-left transition active:scale-95 h-24">
+                          <span className="font-bold text-gray-100 text-sm line-clamp-1">{cat.name}</span>
+                          <div className="flex justify-between w-full text-[11px] text-gray-400 mt-auto font-mono">
+                            <span>-{cat.lead}s / +{cat.lag}s</span>
+                            <span className="bg-gray-900 px-1.5 py-0.5 rounded border border-gray-700 uppercase font-bold text-blue-400">{cat.shortcut}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* List */}
+                {activeTab === 'list' && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">Historial y Compilación</span>
+                      <span className="text-[11px] bg-blue-950 text-blue-300 font-bold px-2 py-0.5 rounded-full font-mono">{selectedCutsForMerge.length} sel.</span>
+                    </div>
+                    <div className="bg-gray-800 p-4 rounded-xl border border-gray-700 space-y-4">
+                      <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                        <span className="text-xs font-bold text-gray-300">Orden de compilado ({selectedCutsForMerge.length})</span>
+                        <div className="flex space-x-2 text-[10px]">
+                          <button onClick={handleSelectAllCuts} className="text-blue-400 hover:underline">Todos</button>
+                          <span className="text-gray-600">|</span>
+                          <button onClick={handleDeselectAllCuts} className="text-gray-400 hover:underline">Ninguno</button>
+                        </div>
+                      </div>
+                      {selectedCutsForMerge.length > 0 && (
+                        <div className="max-h-48 overflow-y-auto bg-gray-900/50 p-2 rounded-lg border border-gray-700 space-y-1.5">
+                          {selectedCutsForMerge.map((id, index) => {
+                            const cc = cuts.find(c => c.id === id), cf = frames.find(f => f.id === id);
+                            if (!cc && !cf) return null;
+                            const isF = !!cf, title = cc ? cc.categoryName : `Foto @ ${formatTime(cf.time)}`, col = cc ? cc.color : '#f59e0b';
+                            return (
+                              <div key={id} className="flex items-center justify-between bg-gray-800 p-2 rounded text-xs border border-gray-700">
+                                <div className="flex items-center space-x-2 truncate pr-2">
+                                  <span className="font-mono text-gray-500 text-[10px] bg-gray-900 px-1.5 py-0.5 rounded">{index + 1}</span>
+                                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: col }}/>
+                                  <span className="truncate font-semibold text-gray-200 flex items-center gap-1.5">
+                                    {isF && <span className="text-amber-400 text-[10px] bg-amber-900/40 px-1 py-0.5 rounded font-bold border border-amber-700/40">FOTO</span>}
+                                    {title}
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-1 flex-shrink-0">
+                                  <button onClick={() => moveCutInMergeOrder(index, 'up')} disabled={index === 0} className="p-1 bg-gray-700 disabled:opacity-30 rounded"><Icons.ArrowUp/></button>
+                                  <button onClick={() => moveCutInMergeOrder(index, 'down')} disabled={index === selectedCutsForMerge.length - 1} className="p-1 bg-gray-700 disabled:opacity-30 rounded"><Icons.ArrowDown/></button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-2">
+                        <button onClick={playCompilationInApp} disabled={!selectedCutsForMerge.length || !videoSrc}
+                          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-gray-800 disabled:to-gray-800 disabled:text-gray-500 text-white text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
+                          <Icons.Tv/><span>Ver en App</span>
+                        </button>
+                        <button onClick={exportUnifiedVideo} disabled={!selectedCutsForMerge.length || !videoSrc}
+                          className="w-full bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-500 text-white text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center space-x-2 transition active:scale-95 border border-gray-600">
+                          <Icons.Layers/><span>Exportar Unificado</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {!cuts.length && (
+                      <div className="text-center text-gray-500 py-12 px-4 bg-gray-800/50 border border-gray-800 rounded-xl">
+                        <Icons.List className="w-10 h-10 mx-auto mb-3 opacity-30"/>
+                        <h3 className="font-bold text-sm mb-1 text-gray-400">Sin cortes</h3>
+                        <p className="text-xs text-gray-500">Usá la pestaña Botonera para marcar eventos.</p>
+                      </div>
+                    )}
+
+                    {cuts.length > 0 && (
+                      <div className="space-y-3">
+                        {cuts.map((cut, idx) => {
+                          const isChk  = selectedCutsForMerge.includes(cut.id);
+                          const isEdit = editingContext.type === 'cut' && editingContext.id === cut.id;
+                          return (
+                            <div key={cut.id} className={`bg-gray-800 rounded-xl p-3.5 flex flex-col border transition-all ${isEdit ? 'border-amber-500 bg-amber-500/5' : 'border-gray-700/80'}`}
+                              style={{ borderLeftWidth: '6px', borderLeftColor: cut.color }}>
+                              <div className="flex justify-between items-center mb-2.5">
+                                <div className="flex items-center space-x-2">
+                                  <input type="checkbox" checked={isChk} onChange={() => handleToggleCutCheckbox(cut.id)} className="w-4 h-4 rounded text-blue-600 bg-gray-900 border-gray-600 cursor-pointer"/>
+                                  <span className="text-xs text-gray-500 font-mono bg-gray-900 px-1.5 py-0.5 rounded">#{idx + 1}</span>
+                                  <span className="font-bold text-sm text-gray-100 truncate pr-2">{cut.categoryName}</span>
+                                </div>
+                                <div className="flex space-x-1">
+                                  <button onClick={() => startEditCutContext(cut)} className={`p-2 rounded-lg transition ${isEdit ? 'bg-amber-500 text-gray-950' : 'text-amber-400 hover:bg-gray-700 bg-gray-900'}`} title="Editar pizarra"><Icons.Edit/></button>
+                                  <button onClick={() => playCut(cut)} className="text-blue-400 hover:bg-gray-700 bg-gray-900 p-2 rounded-lg" title="Reproducir"><Icons.Play/></button>
+                                  <button onClick={() => exportVideoClip(cut)} className="text-green-400 hover:bg-gray-700 bg-gray-900 p-2 rounded-lg" title="Exportar clip"><Icons.Download/></button>
+                                  <button onClick={() => deleteCut(cut.id)} className="text-red-400 hover:bg-gray-700 bg-gray-900 p-2 rounded-lg" title="Eliminar"><Icons.Trash/></button>
+                                </div>
+                              </div>
+                              <div className="text-xs font-mono flex items-center justify-between bg-gray-900/60 p-2 rounded-lg border border-gray-700">
+                                <span className="text-blue-300 font-semibold">{formatTime(cut.start)}</span>
+                                <span className="text-gray-600">➔</span>
+                                <span className="text-blue-300 font-semibold">{formatTime(cut.end)}</span>
+                                <span className="text-[10px] bg-gray-800 px-1.5 py-0.5 rounded text-gray-400 font-bold">{(cut.end - cut.start).toFixed(1)}s</span>
+                                {cut.shapes?.length > 0 && <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-bold animate-pulse">🎨 {cut.shapes.length}</span>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Frames */}
+                {activeTab === 'frames' && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold uppercase text-gray-400">Galería de Capturas</span>
+                      <span className="text-[11px] bg-blue-900/20 border border-blue-500/20 text-blue-300 font-bold px-2.5 py-0.5 rounded-full font-mono">{frames.length} fotos</span>
+                    </div>
+                    {!frames.length ? (
+                      <div className="text-center text-gray-500 py-12 px-4 bg-gray-800/50 border border-gray-800 rounded-xl">
+                        <Icons.Image className="w-10 h-10 mx-auto mb-3 opacity-30"/>
+                        <h3 className="font-bold text-sm mb-1 text-gray-400">Sin capturas</h3>
+                        <p className="text-xs text-gray-500">Usá el botón de cámara para guardar fotogramas.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        {frames.map((frame, idx) => {
+                          const isEdit = editingContext.type === 'frame' && editingContext.id === frame.id;
+                          const isChk  = selectedCutsForMerge.includes(frame.id);
+                          return (
+                            <div key={frame.id} className={`bg-gray-800 rounded-xl overflow-hidden border flex flex-col group shadow-lg ${isEdit ? 'border-amber-500 ring-1 ring-amber-500' : 'border-gray-700'}`}>
+                              <div className="relative aspect-video bg-black">
+                                <img src={frame.dataUrl} alt={`Captura ${idx + 1}`} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"/>
+                                <div className="absolute top-2 left-2 z-10 bg-gray-900/90 p-1.5 rounded-lg border border-gray-700 flex items-center gap-1.5">
+                                  <input type="checkbox" checked={isChk} onChange={() => handleToggleCutCheckbox(frame.id)} className="w-4 h-4 rounded text-blue-600 bg-gray-950 border-gray-600 cursor-pointer"/>
+                                  <span className="text-[9px] font-bold text-gray-300">UNIFICAR</span>
+                                </div>
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 transition-opacity cursor-pointer"
+                                  onClick={() => { if (videoRef.current) { videoRef.current.currentTime = frame.time; setCurrentTime(frame.time); } }}>
+                                  <Icons.Play className="text-white w-8 h-8 opacity-70"/>
+                                </div>
+                              </div>
+                              <div className="p-2.5 flex justify-between items-center bg-gray-900 border-t border-gray-800">
+                                <div className="flex flex-col">
+                                  <span className="text-[11px] text-blue-400 font-mono font-bold">{formatTime(frame.time)}</span>
+                                  {frame.shapes?.length > 0 && <span className="text-[9px] text-amber-500 font-bold">🎨 {frame.shapes.length} marcas</span>}
+                                </div>
+                                <div className="flex space-x-1">
+                                  <button onClick={() => startEditFrameContext(frame)} className={`p-1.5 rounded transition ${isEdit ? 'bg-amber-500 text-gray-950' : 'text-amber-400 hover:bg-gray-700'}`} title="Editar pizarra"><Icons.Edit/></button>
+                                  <a href={frame.dataUrl} download={`captura_${activeProject.name.replace(/[^a-z0-9]/gi, '_')}_${formatTime(frame.time).replace(/:/g, '-')}.jpg`} className="p-1.5 text-green-400 hover:bg-gray-700 rounded"><Icons.Download/></a>
+                                  <button onClick={() => { setFrames(p => p.filter(f => f.id !== frame.id)); if (editingContext.id === frame.id) setEditingContext({ type: 'global', id: null }); }} className="p-1.5 text-red-400 hover:bg-gray-700 rounded"><Icons.Trash/></button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Config */}
+                {activeTab === 'config' && (
+                  <div className="space-y-6">
+                    <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                      <h3 className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-1"><Icons.Plus/>Agregar Categoría</h3>
+                      <form onSubmit={handleAddCategory} className="space-y-3">
+                        <input type="text" placeholder="Ej: Transición Ofensiva" value={newCatName} onChange={e => setNewCatName(e.target.value)}
+                          className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500"/>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[{ label: 'Antes (s)', val: newCatLead, fn: e => setNewCatLead(parseInt(e.target.value) || 0) }, { label: 'Después (s)', val: newCatLag, fn: e => setNewCatLag(parseInt(e.target.value) || 0) }].map(({ label, val, fn }) => (
+                            <div key={label}>
+                              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{label}</label>
+                              <input type="number" min="0" value={val} onChange={fn} className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none font-mono text-center"/>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Atajo</label>
+                            <input type="text" maxLength="1" placeholder="Tecla" value={newCatShortcut} onChange={e => setNewCatShortcut(e.target.value)}
+                              className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none font-mono text-center uppercase font-bold"/>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Color</label>
+                            <select value={newCatColor} onChange={e => setNewCatColor(e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none">
+                              {COLOR_PALETTE.map(c => <option key={c.hex} value={c.hex}>{c.name}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 transition active:scale-95">
+                          <Icons.Plus/>Agregar a la Botonera
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Botonera Activa</h3>
+                        <span className="text-[10px] text-gray-500">Editá en caliente</span>
+                      </div>
+                      {categories.map(cat => (
+                        <div key={cat.id} className="bg-gray-800 p-4 rounded-xl border border-gray-700 flex flex-col space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span className="w-3.5 h-3.5 rounded-full border border-black/20" style={{ backgroundColor: cat.color }}/>
+                              <input type="text" value={cat.name} onChange={e => handleCategoryChange(cat.id, 'name', e.target.value)}
+                                className="font-bold text-xs bg-transparent border-b border-transparent hover:border-gray-600 focus:border-blue-500 focus:outline-none text-white w-48 py-0.5"/>
+                            </div>
+                            <button onClick={() => deleteCategory(cat.id)} className="text-red-400 hover:text-red-300 p-1.5 rounded-lg"><Icons.Trash/></button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 text-xs">
+                            {[{ label: 'Antes (s)', f: 'lead' }, { label: 'Después (s)', f: 'lag' }, { label: 'Atajo', f: 'shortcut' }].map(({ label, f }) => (
+                              <div key={f} className="bg-gray-900/80 p-2 rounded-lg border border-gray-700">
+                                <span className="text-[9px] text-gray-500 block mb-1 uppercase font-bold text-center">{label}</span>
+                                <input type={f === 'shortcut' ? 'text' : 'number'} min="0" maxLength={f === 'shortcut' ? 1 : undefined}
+                                  value={cat[f]} onChange={e => handleCategoryChange(cat.id, f, e.target.value)}
+                                  className="w-full bg-gray-950 font-bold text-white text-xs p-1 rounded border border-gray-700 font-mono text-center uppercase focus:outline-none focus:border-blue-500"/>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          </main>
+
+          <style dangerouslySetInnerHTML={{ __html: `
+            ::-webkit-scrollbar { width: 6px; height: 6px; }
+            ::-webkit-scrollbar-track { background: #0f172a; }
+            ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+            ::-webkit-scrollbar-thumb:hover { background: #475569; }
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+            .animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
+          `}}/>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
