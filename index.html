@@ -16,49 +16,62 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #d946ef; }
+
     @keyframes shapePulse {
       0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px currentColor); }
-      50% { opacity: 0.6; filter: drop-shadow(0 0 12px currentColor); }
+      50% { opacity: 0.6; filter: drop-shadow(0 0 14px currentColor); }
     }
     @keyframes shapeFadeIn {
       0% { opacity: 0; transform: translateY(8px) scale(0.95); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
     }
-    @keyframes shapeBorderSpin {
-      from { stroke-dashoffset: 0; }
-      to { stroke-dashoffset: -100; }
-    }
     @keyframes shapeVibrate {
-      0%, 100% { transform: translate(0, 0); }
-      20% { transform: translate(-2px, 1px); }
-      40% { transform: translate(2px, -1px); }
-      60% { transform: translate(-1px, 2px); }
-      80% { transform: translate(1px, -2px); }
+      0%, 100% { transform: translate(0,0); }
+      20% { transform: translate(-2px,1px); }
+      40% { transform: translate(2px,-1px); }
+      60% { transform: translate(-1px,2px); }
+      80% { transform: translate(1px,-2px); }
     }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     @keyframes glow {
       0%, 100% { box-shadow: 0 0 8px #d946ef44; }
-      50% { box-shadow: 0 0 24px #d946ef88, 0 0 48px #d946ef22; }
+      50%       { box-shadow: 0 0 24px #d946ef88, 0 0 48px #d946ef22; }
     }
     @keyframes slideInRight {
       from { opacity: 0; transform: translateX(20px); }
-      to { opacity: 1; transform: translateX(0); }
+      to   { opacity: 1; transform: translateX(0); }
     }
-    .animate-pulse-shape { animation: shapePulse 1.5s ease-in-out infinite; }
-    .animate-fade-in-shape { animation: shapeFadeIn 0.4s ease-out forwards; }
-    .animate-vibrate-shape { animation: shapeVibrate 0.3s ease-in-out infinite; }
-    .animate-glow { animation: glow 2s ease-in-out infinite; }
-    .animate-slide-in { animation: slideInRight 0.25s ease-out forwards; }
-    .animate-fade-up { animation: fadeInUp 0.2s ease-out forwards; }
+    /* ✅ ANIMACIÓN ANILLO TÁCTICO — rota el patrón dashed */
+    @keyframes spotlightRingRotate {
+      from { stroke-dashoffset: 0; }
+      to   { stroke-dashoffset: -60; }
+    }
+    @keyframes spotlightPulse {
+      0%, 100% { opacity: 0.85; }
+      50%       { opacity: 0.4; }
+    }
+    @keyframes spotlightConeBreath {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.55; }
+    }
+
+    .animate-glow        { animation: glow 2s ease-in-out infinite; }
+    .animate-slide-in    { animation: slideInRight 0.25s ease-out forwards; }
+    .animate-fade-up     { animation: fadeInUp 0.2s ease-out forwards; }
+    .spotlight-ring-anim { animation: spotlightRingRotate 2.5s linear infinite; }
+    .spotlight-pulse-anim{ animation: spotlightPulse 1.8s ease-in-out infinite; }
+    .spotlight-cone-anim { animation: spotlightConeBreath 2s ease-in-out infinite; }
+
     .fullscreen-container:fullscreen .fs-controls {
       position: fixed; bottom: 0; left: 0; right: 0;
       z-index: 9999; opacity: 0; transition: opacity 0.3s ease;
     }
     .fullscreen-container:fullscreen .fs-controls.show { opacity: 1; }
     .fullscreen-container:fullscreen .fs-hide { display: none !important; }
+
     .glass {
       background: rgba(15,15,25,0.8);
       backdrop-filter: blur(12px);
@@ -78,19 +91,19 @@
     .context-menu {
       position: fixed; z-index: 9999;
       background: #1e1e2e; border: 1px solid #334155;
-      border-radius: 8px; padding: 4px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-      min-width: 160px;
+      border-radius: 10px; padding: 4px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+      min-width: 180px;
       animation: fadeInUp 0.15s ease-out forwards;
     }
     .context-menu-item {
       display: flex; align-items: center; gap: 8px;
-      padding: 8px 12px; border-radius: 6px;
+      padding: 9px 14px; border-radius: 7px;
       font-size: 12px; cursor: pointer; color: #e2e8f0;
       transition: background 0.15s;
     }
-    .context-menu-item:hover { background: rgba(217,70,239,0.15); color: #e879f9; }
-    .context-menu-item.danger:hover { background: rgba(239,68,68,0.15); color: #f87171; }
+    .context-menu-item:hover       { background: rgba(217,70,239,0.15); color: #e879f9; }
+    .context-menu-item.danger:hover{ background: rgba(239,68,68,0.15);  color: #f87171; }
     .zone-cell { transition: fill 0.2s ease; cursor: pointer; }
     .zone-cell:hover { fill: rgba(217,70,239,0.15) !important; }
   </style>
@@ -100,128 +113,159 @@
   <script type="text/babel">
     const { useState, useRef, useEffect, useCallback } = React;
 
+    // ── PALETA ──
     const COLOR_PALETTE = [
-      { name: 'Rojo Fuego',   hex: '#ef4444' },
-      { name: 'Rojo Oscuro',  hex: '#991b1b' },
-      { name: 'Naranja',      hex: '#f97316' },
-      { name: 'Ámbar',        hex: '#f59e0b' },
-      { name: 'Oro',          hex: '#fbbf24' },
-      { name: 'Lima',         hex: '#84cc16' },
-      { name: 'Verde',        hex: '#10b981' },
-      { name: 'Verde Oscuro', hex: '#065f46' },
-      { name: 'Cian',         hex: '#06b6d4' },
-      { name: 'Azul Cielo',   hex: '#38bdf8' },
-      { name: 'Azul',         hex: '#3b82f6' },
-      { name: 'Azul Marino',  hex: '#1e3a8a' },
-      { name: 'Índigo',       hex: '#6366f1' },
-      { name: 'Morado',       hex: '#8b5cf6' },
-      { name: 'Fuxia',        hex: '#d946ef' },
-      { name: 'Rosa',         hex: '#ec4899' },
-      { name: 'Blanco',       hex: '#ffffff' },
-      { name: 'Gris Plata',   hex: '#94a3b8' },
-      { name: 'Gris',         hex: '#475569' },
-      { name: 'Negro',        hex: '#0f172a' },
+      { name:'Rojo Fuego',   hex:'#ef4444' },
+      { name:'Rojo Oscuro',  hex:'#991b1b' },
+      { name:'Naranja',      hex:'#f97316' },
+      { name:'Ámbar',        hex:'#f59e0b' },
+      { name:'Oro',          hex:'#fbbf24' },
+      { name:'Lima',         hex:'#84cc16' },
+      { name:'Verde',        hex:'#10b981' },
+      { name:'Verde Oscuro', hex:'#065f46' },
+      { name:'Cian',         hex:'#06b6d4' },
+      { name:'Azul Cielo',   hex:'#38bdf8' },
+      { name:'Azul',         hex:'#3b82f6' },
+      { name:'Azul Marino',  hex:'#1e3a8a' },
+      { name:'Índigo',       hex:'#6366f1' },
+      { name:'Morado',       hex:'#8b5cf6' },
+      { name:'Fuxia',        hex:'#d946ef' },
+      { name:'Rosa',         hex:'#ec4899' },
+      { name:'Blanco',       hex:'#ffffff' },
+      { name:'Gris Plata',   hex:'#94a3b8' },
+      { name:'Gris',         hex:'#475569' },
+      { name:'Negro',        hex:'#0f172a' },
     ];
 
     const DEFAULT_CATEGORIES = [
-      { id: 'cat-1', name: 'Ataque Organizado',   color: '#3b82f6', lead: 5,  lag: 20, shortcut: 'q' },
-      { id: 'cat-2', name: 'Presión Alta',         color: '#10b981', lead: 5,  lag: 15, shortcut: 'w' },
-      { id: 'cat-3', name: 'Error en Salida',      color: '#ef4444', lead: 8,  lag: 12, shortcut: 'e' },
-      { id: 'cat-4', name: 'Pelota Parada',        color: '#f59e0b', lead: 5,  lag: 20, shortcut: 'r' },
-      { id: 'cat-5', name: 'Transición Defensiva', color: '#8b5cf6', lead: 6,  lag: 14, shortcut: 't' },
+      { id:'cat-1', name:'Ataque Organizado',   color:'#3b82f6', lead:5,  lag:20, shortcut:'q' },
+      { id:'cat-2', name:'Presión Alta',         color:'#10b981', lead:5,  lag:15, shortcut:'w' },
+      { id:'cat-3', name:'Error en Salida',      color:'#ef4444', lead:8,  lag:12, shortcut:'e' },
+      { id:'cat-4', name:'Pelota Parada',        color:'#f59e0b', lead:5,  lag:20, shortcut:'r' },
+      { id:'cat-5', name:'Transición Defensiva', color:'#8b5cf6', lead:6,  lag:14, shortcut:'t' },
     ];
 
     const FORMATIONS = {
-      '4-3-3':   { positions: [{x:8,y:50},{x:22,y:18},{x:22,y:40},{x:22,y:60},{x:22,y:82},{x:42,y:25},{x:42,y:50},{x:42,y:75},{x:75,y:15},{x:75,y:50},{x:75,y:85}] },
-      '4-4-2':   { positions: [{x:8,y:50},{x:22,y:18},{x:22,y:40},{x:22,y:60},{x:22,y:82},{x:45,y:18},{x:45,y:40},{x:45,y:60},{x:45,y:82},{x:75,y:35},{x:75,y:65}] },
-      '3-5-2':   { positions: [{x:8,y:50},{x:22,y:25},{x:22,y:50},{x:22,y:75},{x:38,y:10},{x:42,y:30},{x:42,y:50},{x:42,y:70},{x:38,y:90},{x:75,y:35},{x:75,y:65}] },
-      '5-3-2':   { positions: [{x:8,y:50},{x:18,y:10},{x:22,y:30},{x:22,y:50},{x:22,y:70},{x:18,y:90},{x:45,y:25},{x:45,y:50},{x:45,y:75},{x:75,y:35},{x:75,y:65}] },
-      '4-2-3-1': { positions: [{x:8,y:50},{x:22,y:18},{x:22,y:40},{x:22,y:60},{x:22,y:82},{x:38,y:38},{x:38,y:62},{x:55,y:15},{x:55,y:50},{x:55,y:85},{x:78,y:50}] },
-      '4-1-4-1': { positions: [{x:8,y:50},{x:22,y:18},{x:22,y:40},{x:22,y:60},{x:22,y:82},{x:38,y:50},{x:55,y:12},{x:55,y:38},{x:55,y:62},{x:55,y:88},{x:78,y:50}] },
-      '3-4-3':   { positions: [{x:8,y:50},{x:22,y:25},{x:22,y:50},{x:22,y:75},{x:42,y:15},{x:42,y:40},{x:42,y:60},{x:42,y:85},{x:72,y:20},{x:72,y:50},{x:72,y:80}] },
+      '4-3-3':   { positions:[{x:8,y:50},{x:22,y:18},{x:22,y:40},{x:22,y:60},{x:22,y:82},{x:42,y:25},{x:42,y:50},{x:42,y:75},{x:75,y:15},{x:75,y:50},{x:75,y:85}] },
+      '4-4-2':   { positions:[{x:8,y:50},{x:22,y:18},{x:22,y:40},{x:22,y:60},{x:22,y:82},{x:45,y:18},{x:45,y:40},{x:45,y:60},{x:45,y:82},{x:75,y:35},{x:75,y:65}] },
+      '3-5-2':   { positions:[{x:8,y:50},{x:22,y:25},{x:22,y:50},{x:22,y:75},{x:38,y:10},{x:42,y:30},{x:42,y:50},{x:42,y:70},{x:38,y:90},{x:75,y:35},{x:75,y:65}] },
+      '5-3-2':   { positions:[{x:8,y:50},{x:18,y:10},{x:22,y:30},{x:22,y:50},{x:22,y:70},{x:18,y:90},{x:45,y:25},{x:45,y:50},{x:45,y:75},{x:75,y:35},{x:75,y:65}] },
+      '4-2-3-1': { positions:[{x:8,y:50},{x:22,y:18},{x:22,y:40},{x:22,y:60},{x:22,y:82},{x:38,y:38},{x:38,y:62},{x:55,y:15},{x:55,y:50},{x:55,y:85},{x:78,y:50}] },
+      '4-1-4-1': { positions:[{x:8,y:50},{x:22,y:18},{x:22,y:40},{x:22,y:60},{x:22,y:82},{x:38,y:50},{x:55,y:12},{x:55,y:38},{x:55,y:62},{x:55,y:88},{x:78,y:50}] },
+      '3-4-3':   { positions:[{x:8,y:50},{x:22,y:25},{x:22,y:50},{x:22,y:75},{x:42,y:15},{x:42,y:40},{x:42,y:60},{x:42,y:85},{x:72,y:20},{x:72,y:50},{x:72,y:80}] },
     };
 
     const PEP_ZONES = (() => {
-      const zones = [], cols = 5, rows = 4;
-      const w = 100/cols, h = 100/rows;
-      const names = ['Z1','Z2','Z3','Z4','Z5','Z6','Z7','Z8','Z9','Z10','Z11','Z12','Z13','Z14','Z15','Z16','Z17','Z18','Z19','Z20'];
-      for (let r=0;r<rows;r++) for (let c=0;c<cols;c++)
-        zones.push({ id:`zone-${r*cols+c}`, name:names[r*cols+c], x:c*w, y:r*h, w, h, active:false, color:'#d946ef' });
+      const zones=[],cols=5,rows=4,w=100/cols,h=100/rows;
+      const names=['Z1','Z2','Z3','Z4','Z5','Z6','Z7','Z8','Z9','Z10','Z11','Z12','Z13','Z14','Z15','Z16','Z17','Z18','Z19','Z20'];
+      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++)
+        zones.push({id:`zone-${r*cols+c}`,name:names[r*cols+c],x:c*w,y:r*h,w,h,active:false,color:'#d946ef'});
       return zones;
     })();
 
+    // ── UTILIDADES ──
     function canvasRoundRect(ctx,x,y,w,h,r){
       ctx.beginPath();
-      ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
-      ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h-r);
-      ctx.arcTo(x+w,y+h,x+w-r,y+h,r); ctx.lineTo(x+r,y+h);
-      ctx.arcTo(x,y+h,x,y+h-r,r); ctx.lineTo(x,y+r);
-      ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+      ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+      ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);
+      ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);
+      ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);
+      ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
     }
 
     function getContrastColor(hex){
       const h=hex.replace('#','');
       const r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);
-      return (0.299*r+0.587*g+0.114*b)/255 > 0.5 ? '#0f172a' : '#ffffff';
+      return (0.299*r+0.587*g+0.114*b)/255>0.5?'#0f172a':'#ffffff';
+    }
+
+    // ✅ INTERPOLACIÓN DE KEYFRAMES para tracking del spotlight
+    function getSpotlightPos(shape, time) {
+      const kf = shape.keyframes;
+      if (!kf || kf.length === 0) return { x: shape.initX||0, y: shape.initY||0 };
+      if (kf.length === 1) return { x: kf[0].x, y: kf[0].y };
+      if (time <= kf[0].time) return { x: kf[0].x, y: kf[0].y };
+      if (time >= kf[kf.length-1].time) return { x: kf[kf.length-1].x, y: kf[kf.length-1].y };
+      for (let i = 0; i < kf.length-1; i++) {
+        if (time >= kf[i].time && time <= kf[i+1].time) {
+          const t = (time - kf[i].time) / (kf[i+1].time - kf[i].time);
+          // Interpolación con ease in-out para movimiento suave
+          const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+          return {
+            x: kf[i].x + (kf[i+1].x - kf[i].x) * ease,
+            y: kf[i].y + (kf[i+1].y - kf[i].y) * ease,
+          };
+        }
+      }
+      return { x: kf[kf.length-1].x, y: kf[kf.length-1].y };
     }
 
     function generatePlayers(formation,homeColor,awayColor){
-      const f=FORMATIONS[formation]; if(!f)return[];
+      const f=FORMATIONS[formation];if(!f)return[];
       const home=f.positions.map((pos,i)=>({id:`home-${i}`,team:'home',x:pos.x,y:pos.y,number:String(i===0?1:i),name:'',color:homeColor,size:18}));
       const away=f.positions.map((pos,i)=>({id:`away-${i}`,team:'away',x:100-pos.x,y:100-pos.y,number:String(i===0?1:i),name:'',color:awayColor,size:18}));
-      return [...home,...away];
+      return[...home,...away];
     }
 
+    // ── ICONS ──
     const Icons = {
-      Play:        (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
-      Pause:       (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>,
-      Upload:      (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
-      Download:    (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-      Trash:       (p) => <svg {...p} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
-      Settings:    (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
-      List:        (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
-      Tag:         (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
-      Plus:        (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-      VideoFile:   (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>,
-      Layers:      (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>,
-      ArrowUp:     (p) => <svg {...p} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>,
-      ArrowDown:   (p) => <svg {...p} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>,
-      Folder:      (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>,
-      Tv:          (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>,
-      Pointer:     (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>,
-      Square:      (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>,
-      Circle:      (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/></svg>,
-      ArrowRight:  (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
-      ArrowCurveL: (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 18 Q 12 8 19 18"/><polyline points="14 18 19 18 17 13"/></svg>,
-      ArrowCurveR: (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8 Q 12 18 19 8"/><polyline points="14 8 19 8 17 13"/></svg>,
-      Pen:         (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>,
-      Clone:       (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
-      Camera:      (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
-      Undo:        (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>,
-      Eraser:      (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 20H7L3 16C2.5 15.5 2.5 14.5 3 14L13 4C13.5 3.5 14.5 3.5 15 4L20 9C20.5 9.5 20.5 10.5 20 11L11 20H20V20Z"/><path d="M6 11L15 20"/></svg>,
-      Image:       (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
-      TextIcon:    (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>,
-      Edit:        (p) => <svg {...p} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
-      Check:       (p) => <svg {...p} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-      SaveDisk:    (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
-      Fullscreen:  (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>,
-      ExitFS:      (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>,
-      Spotlight:   (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,
-      ZoomIn:      (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>,
-      Crosshair:   (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>,
-      FocusBox:    (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h5v5H3zM16 3h5v5h-5zM3 16h5v5H3zM16 16h5v5h-5z"/></svg>,
-      TacticBoard: (p) => <svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><circle cx="8" cy="9" r="2"/><circle cx="16" cy="9" r="2"/><circle cx="12" cy="16" r="2"/><line x1="8" y1="11" x2="12" y2="14"/><line x1="16" y1="11" x2="12" y2="14"/></svg>,
-      ImgImport:   (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><line x1="12" y1="1" x2="12" y2="5"/><polyline points="9 4 12 1 15 4"/></svg>,
-      Zap:         (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-      X:           (p) => <svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+      Play:        p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+      Pause:       p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>,
+      Upload:      p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+      Download:    p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+      Trash:       p=><svg {...p} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+      Settings:    p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+      List:        p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+      Tag:         p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+      Plus:        p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+      VideoFile:   p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>,
+      Layers:      p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>,
+      ArrowUp:     p=><svg {...p} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>,
+      ArrowDown:   p=><svg {...p} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>,
+      Folder:      p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>,
+      Tv:          p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>,
+      Pointer:     p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>,
+      Square:      p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>,
+      Circle:      p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/></svg>,
+      ArrowRight:  p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+      ArrowCurveL: p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 18 Q 12 8 19 18"/><polyline points="14 18 19 18 17 13"/></svg>,
+      ArrowCurveR: p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8 Q 12 18 19 8"/><polyline points="14 8 19 8 17 13"/></svg>,
+      Pen:         p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>,
+      Clone:       p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+      Camera:      p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+      Undo:        p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>,
+      Eraser:      p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 20H7L3 16C2.5 15.5 2.5 14.5 3 14L13 4C13.5 3.5 14.5 3.5 15 4L20 9C20.5 9.5 20.5 10.5 20 11L11 20H20V20Z"/><path d="M6 11L15 20"/></svg>,
+      Image:       p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+      TextIcon:    p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>,
+      Edit:        p=><svg {...p} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+      Check:       p=><svg {...p} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+      SaveDisk:    p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+      Fullscreen:  p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>,
+      ExitFS:      p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>,
+      Spotlight:   p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,
+      ZoomIn:      p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>,
+      Crosshair:   p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>,
+      FocusBox:    p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h5v5H3zM16 3h5v5h-5zM3 16h5v5H3zM16 16h5v5h-5z"/></svg>,
+      TacticBoard: p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><circle cx="8" cy="9" r="2"/><circle cx="16" cy="9" r="2"/><circle cx="12" cy="16" r="2"/><line x1="8" y1="11" x2="12" y2="14"/><line x1="16" y1="11" x2="12" y2="14"/></svg>,
+      ImgImport:   p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><line x1="12" y1="1" x2="12" y2="5"/><polyline points="9 4 12 1 15 4"/></svg>,
+      Zap:         p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+      X:           p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+      // ✅ NUEVO — Icono para la herramienta Tactical Spotlight
+      TacticalSpot:p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <ellipse cx="12" cy="20" rx="6" ry="2"/>
+        <path d="M8 20 L10 8 M16 20 L14 8" opacity="0.5"/>
+        <polygon points="10,8 14,8 13,3 11,3" fill="currentColor" opacity="0.8"/>
+        <circle cx="12" cy="12" r="2.5" fill="currentColor" opacity="0.6"/>
+      </svg>,
     };
 
+    // ── COLOR PICKER ──
     function ColorPicker({ value, onChange }) {
       return (
         <div className="flex flex-wrap gap-1 items-center">
-          {COLOR_PALETTE.map(c => (
-            <button key={c.hex} type="button" onClick={() => onChange(c.hex)} title={c.name}
-              style={{ backgroundColor: c.hex }}
+          {COLOR_PALETTE.map(c=>(
+            <button key={c.hex} type="button" onClick={()=>onChange(c.hex)} title={c.name}
+              style={{backgroundColor:c.hex}}
               className={`w-5 h-5 rounded-full border-2 transition-all duration-150 ${value===c.hex?'border-white scale-125 shadow-lg':'border-transparent hover:scale-110 hover:border-white/50'}`}/>
           ))}
           <label title="Color personalizado"
@@ -234,20 +278,21 @@
       );
     }
 
+    // ── CONTEXT MENU ──
     function ContextMenu({ x, y, onDelete, onAnimate, onClose, hasAnimation }) {
-      useEffect(() => {
-        const h = () => onClose();
-        window.addEventListener('click', h);
-        return () => window.removeEventListener('click', h);
-      }, []);
+      useEffect(()=>{
+        const h=()=>onClose();
+        window.addEventListener('click',h);
+        return()=>window.removeEventListener('click',h);
+      },[]);
       return (
-        <div className="context-menu" style={{ left: x, top: y }}>
-          <div className="context-menu-item" onClick={() => { onAnimate(); onClose(); }}>
+        <div className="context-menu" style={{left:x,top:y}}>
+          <div className="context-menu-item" onClick={()=>{onAnimate();onClose();}}>
             <Icons.Zap className="w-3.5 h-3.5"/>
-            {hasAnimation ? 'Quitar animación' : 'Agregar animación'}
+            {hasAnimation?'Quitar animación':'Agregar animación'}
           </div>
-          <div style={{ height:1, background:'#334155', margin:'3px 4px' }}/>
-          <div className="context-menu-item danger" onClick={() => { onDelete(); onClose(); }}>
+          <div style={{height:1,background:'#334155',margin:'3px 4px'}}/>
+          <div className="context-menu-item danger" onClick={()=>{onDelete();onClose();}}>
             <Icons.Trash className="w-3.5 h-3.5"/>Eliminar figura
           </div>
         </div>
@@ -255,118 +300,124 @@
     }
 
     function App() {
-      const [projects, setProjects] = useState(() => {
-        try { const s=localStorage.getItem('isanalisis_v1'); if(s){const p=JSON.parse(s);if(p?.length>0)return p;} } catch(e) {}
-        return [{ id:'proj-1', name:'Mi Primer Proyecto', videoName:'', cuts:[], frames:[], categories:DEFAULT_CATEGORIES, selectedCutsForMerge:[] }];
+      const [projects,setProjects]=useState(()=>{
+        try{const s=localStorage.getItem('isanalisis_v1');if(s){const p=JSON.parse(s);if(p?.length>0)return p;}}catch(e){}
+        return[{id:'proj-1',name:'Mi Primer Proyecto',videoName:'',cuts:[],frames:[],categories:DEFAULT_CATEGORIES,selectedCutsForMerge:[]}];
       });
-      const [activeProjectId, setActiveProjectId] = useState(() => {
-        try { const s=localStorage.getItem('isanalisis_active'); if(s)return s; } catch(e) {}
-        return 'proj-1';
+      const [activeProjectId,setActiveProjectId]=useState(()=>{
+        try{const s=localStorage.getItem('isanalisis_active');if(s)return s;}catch(e){}
+        return'proj-1';
       });
 
-      const [loadedVideos,       setLoadedVideos]       = useState({});
-      const [activeTab,          setActiveTab]           = useState('panel');
-      const [currentTime,        setCurrentTime]         = useState(0);
-      const [duration,           setDuration]            = useState(0);
-      const [playbackRate,       setPlaybackRate]        = useState(1);
-      const [isPlaying,          setIsPlaying]           = useState(false);
-      const [notification,       setNotification]        = useState(null);
-      const [selectedCut,        setSelectedCut]         = useState(null);
-      const [videoDimensions,    setVideoDimensions]     = useState({ width:1920, height:1080 });
-      const [isPlayCompActive,   setIsPlayCompActive]    = useState(false);
-      const [compPlayIndex,      setCompPlayIndex]       = useState(0);
-      const [activeCompFrame,    setActiveCompFrame]     = useState(null);
-      const [confirmModal,       setConfirmModal]        = useState({ isOpen:false, title:'', message:'', onConfirm:null });
-      const [newProjName,        setNewProjName]         = useState('');
-      const [isExporting,        setIsExporting]         = useState(false);
-      const [exportProgress,     setExportProgress]      = useState(0);
-      const [exportingName,      setExportingName]       = useState('');
-      const [newCatName,         setNewCatName]          = useState('');
-      const [newCatColor,        setNewCatColor]         = useState('#d946ef');
-      const [newCatLead,         setNewCatLead]          = useState(5);
-      const [newCatLag,          setNewCatLag]           = useState(20);
-      const [newCatShortcut,     setNewCatShortcut]      = useState('');
-      const [editingContext,     setEditingContext]       = useState({ type:'global', id:null });
-      const [isFullscreen,       setIsFullscreen]        = useState(false);
-      const [showControls,       setShowControls]        = useState(true);
-      const controlsTimerRef = useRef(null);
+      const [loadedVideos,      setLoadedVideos]      =useState({});
+      const [activeTab,         setActiveTab]          =useState('panel');
+      const [currentTime,       setCurrentTime]        =useState(0);
+      const [duration,          setDuration]           =useState(0);
+      const [playbackRate,      setPlaybackRate]       =useState(1);
+      const [isPlaying,         setIsPlaying]          =useState(false);
+      const [notification,      setNotification]       =useState(null);
+      const [selectedCut,       setSelectedCut]        =useState(null);
+      const [videoDimensions,   setVideoDimensions]    =useState({width:1920,height:1080});
+      const [isPlayCompActive,  setIsPlayCompActive]   =useState(false);
+      const [compPlayIndex,     setCompPlayIndex]      =useState(0);
+      const [activeCompFrame,   setActiveCompFrame]    =useState(null);
+      const [confirmModal,      setConfirmModal]       =useState({isOpen:false,title:'',message:'',onConfirm:null});
+      const [newProjName,       setNewProjName]        =useState('');
+      const [isExporting,       setIsExporting]        =useState(false);
+      const [exportProgress,    setExportProgress]     =useState(0);
+      const [exportingName,     setExportingName]      =useState('');
+      const [newCatName,        setNewCatName]         =useState('');
+      const [newCatColor,       setNewCatColor]        =useState('#d946ef');
+      const [newCatLead,        setNewCatLead]         =useState(5);
+      const [newCatLag,         setNewCatLag]          =useState(20);
+      const [newCatShortcut,    setNewCatShortcut]     =useState('');
+      const [editingContext,    setEditingContext]     =useState({type:'global',id:null});
+      const [isFullscreen,      setIsFullscreen]       =useState(false);
+      const [showControls,      setShowControls]       =useState(true);
+      const controlsTimerRef=useRef(null);
 
-      const [drawTool,        setDrawTool]        = useState('cursor');
-      const [drawColor,       setDrawColor]       = useState('#ef4444');
-      const [shapes,          setShapes]          = useState([]);
-      const [currentShape,    setCurrentShape]    = useState(null);
-      const [selectedShapeId, setSelectedShapeId] = useState(null);
-      const [interaction,     setInteraction]     = useState(null);
-      const [cloneTrailActive,setCloneTrailActive]= useState(false);
-      const [contextMenu,     setContextMenu]     = useState(null);
+      // Drawing
+      const [drawTool,        setDrawTool]        =useState('cursor');
+      const [drawColor,       setDrawColor]       =useState('#ef4444');
+      const [shapes,          setShapes]          =useState([]);
+      const [currentShape,    setCurrentShape]    =useState(null);
+      const [selectedShapeId, setSelectedShapeId] =useState(null);
+      const [interaction,     setInteraction]     =useState(null);
+      const [cloneTrailActive,setCloneTrailActive]=useState(false);
+      const [contextMenu,     setContextMenu]     =useState(null);
 
-      const [focusTool,       setFocusTool]       = useState(null);
-      const [focusShape,      setFocusShape]      = useState(null);
-      const [isDraggingFocus, setIsDraggingFocus] = useState(false);
-      const [focusDragOffset, setFocusDragOffset] = useState({ x:0, y:0 });
-      const [zoomLevel,       setZoomLevel]       = useState(2);
+      // Foco
+      const [focusTool,       setFocusTool]       =useState(null);
+      const [focusShape,      setFocusShape]      =useState(null);
+      const [isDraggingFocus, setIsDraggingFocus] =useState(false);
+      const [focusDragOffset, setFocusDragOffset] =useState({x:0,y:0});
+      const [zoomLevel,       setZoomLevel]       =useState(2);
 
-      const [showTacticBoard,   setShowTacticBoard]   = useState(false);
-      const [tbFormation,       setTbFormation]       = useState('4-3-3');
-      const [tbPlayers,         setTbPlayers]         = useState([]);
-      const [tbShapes,          setTbShapes]          = useState([]);
-      const [tbCurrentShape,    setTbCurrentShape]    = useState(null);
-      const [tbSelectedId,      setTbSelectedId]      = useState(null);
-      const [tbTool,            setTbTool]            = useState('cursor');
-      const [tbColor,           setTbColor]           = useState('#ef4444');
-      const [tbLineStyle,       setTbLineStyle]       = useState('solid');
-      const [tbInteraction,     setTbInteraction]     = useState(null);
-      const [tbHomeColor,       setTbHomeColor]       = useState('#3b82f6');
-      const [tbAwayColor,       setTbAwayColor]       = useState('#ef4444');
-      const [tbFormationChosen, setTbFormationChosen] = useState(false);
-      const [tbZones,           setTbZones]           = useState(PEP_ZONES);
-      const [tbShowZones,       setTbShowZones]       = useState(false);
-      const [editingPlayer,     setEditingPlayer]     = useState(null);
-      const [tbContextMenu,     setTbContextMenu]     = useState(null);
+      // ✅ TACTICAL SPOTLIGHT state
+      const [spotlightColor,  setSpotlightColor]  =useState('#d946ef');
 
-      const svgRef             = useRef(null);
-      const videoRef           = useRef(null);
-      const videoContainerRef  = useRef(null);
-      const fileInputRef       = useRef(null);
-      const importInputRef     = useRef(null);
-      const importPhotoRef     = useRef(null);
-      const mediaRecorderRef   = useRef(null);
-      const recordedChunksRef  = useRef([]);
-      const compTimerRef       = useRef(null);
-      const isTransitioningRef = useRef(false);
-      const prevContextRef     = useRef({ type:'global', id:null });
-      const tbSvgRef           = useRef(null);
+      // Pizarra táctica
+      const [showTacticBoard,  setShowTacticBoard]  =useState(false);
+      const [tbFormation,      setTbFormation]      =useState('4-3-3');
+      const [tbPlayers,        setTbPlayers]        =useState([]);
+      const [tbShapes,         setTbShapes]         =useState([]);
+      const [tbCurrentShape,   setTbCurrentShape]   =useState(null);
+      const [tbSelectedId,     setTbSelectedId]     =useState(null);
+      const [tbTool,           setTbTool]           =useState('cursor');
+      const [tbColor,          setTbColor]          =useState('#ef4444');
+      const [tbLineStyle,      setTbLineStyle]      =useState('solid');
+      const [tbInteraction,    setTbInteraction]    =useState(null);
+      const [tbHomeColor,      setTbHomeColor]      =useState('#3b82f6');
+      const [tbAwayColor,      setTbAwayColor]      =useState('#ef4444');
+      const [tbFormationChosen,setTbFormationChosen]=useState(false);
+      const [tbZones,          setTbZones]          =useState(PEP_ZONES);
+      const [tbShowZones,      setTbShowZones]      =useState(false);
+      const [editingPlayer,    setEditingPlayer]    =useState(null);
+      const [tbContextMenu,    setTbContextMenu]    =useState(null);
 
-      useEffect(() => { try { localStorage.setItem('isanalisis_v1', JSON.stringify(projects)); } catch(e) {} }, [projects]);
-      useEffect(() => { try { localStorage.setItem('isanalisis_active', activeProjectId); } catch(e) {} }, [activeProjectId]);
-      useEffect(() => () => { if(compTimerRef.current)clearTimeout(compTimerRef.current); }, []);
+      const svgRef             =useRef(null);
+      const videoRef           =useRef(null);
+      const videoContainerRef  =useRef(null);
+      const fileInputRef       =useRef(null);
+      const importInputRef     =useRef(null);
+      const importPhotoRef     =useRef(null);
+      const mediaRecorderRef   =useRef(null);
+      const recordedChunksRef  =useRef([]);
+      const compTimerRef       =useRef(null);
+      const isTransitioningRef =useRef(false);
+      const prevContextRef     =useRef({type:'global',id:null});
+      const tbSvgRef           =useRef(null);
 
-      useEffect(() => {
-        const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
-        document.addEventListener('fullscreenchange', onFsChange);
-        return () => document.removeEventListener('fullscreenchange', onFsChange);
-      }, []);
+      useEffect(()=>{try{localStorage.setItem('isanalisis_v1',JSON.stringify(projects));}catch(e){}},[projects]);
+      useEffect(()=>{try{localStorage.setItem('isanalisis_active',activeProjectId);}catch(e){}},[activeProjectId]);
+      useEffect(()=>()=>{if(compTimerRef.current)clearTimeout(compTimerRef.current);},[]);
 
-      const toggleFullscreen = () => {
+      useEffect(()=>{
+        const onFsChange=()=>setIsFullscreen(!!document.fullscreenElement);
+        document.addEventListener('fullscreenchange',onFsChange);
+        return()=>document.removeEventListener('fullscreenchange',onFsChange);
+      },[]);
+
+      const toggleFullscreen=()=>{
         if(!videoContainerRef.current)return;
         if(!document.fullscreenElement)videoContainerRef.current.requestFullscreen().catch(()=>{});
         else document.exitFullscreen();
       };
 
-      const handleMouseMoveInPlayer = () => {
+      const handleMouseMoveInPlayer=()=>{
         setShowControls(true);
         if(controlsTimerRef.current)clearTimeout(controlsTimerRef.current);
-        if(isFullscreen) controlsTimerRef.current=setTimeout(()=>setShowControls(false),3000);
+        if(isFullscreen)controlsTimerRef.current=setTimeout(()=>setShowControls(false),3000);
       };
 
-      const activeProject = projects.find(p=>p.id===activeProjectId)||projects[0]||{id:'proj-default',name:'Proyecto',videoName:'',cuts:[],frames:[],categories:DEFAULT_CATEGORIES,selectedCutsForMerge:[]};
-      const cuts=activeProject.cuts, frames=activeProject.frames||[], categories=activeProject.categories, selectedCutsForMerge=activeProject.selectedCutsForMerge||[];
-      const activeVideo=loadedVideos[activeProjectId]||{file:null,src:''}, videoSrc=activeVideo.src;
+      const activeProject=projects.find(p=>p.id===activeProjectId)||projects[0]||{id:'proj-default',name:'Proyecto',videoName:'',cuts:[],frames:[],categories:DEFAULT_CATEGORIES,selectedCutsForMerge:[]};
+      const cuts=activeProject.cuts,frames=activeProject.frames||[],categories=activeProject.categories,selectedCutsForMerge=activeProject.selectedCutsForMerge||[];
+      const activeVideo=loadedVideos[activeProjectId]||{file:null,src:''},videoSrc=activeVideo.src;
 
-      const setCuts=(fn)=>setProjects(prev=>prev.map(p=>p.id!==activeProjectId?p:{...p,cuts:typeof fn==='function'?fn(p.cuts):fn}));
-      const setFrames=(fn)=>setProjects(prev=>prev.map(p=>p.id!==activeProjectId?p:{...p,frames:typeof fn==='function'?fn(p.frames||[]):fn}));
-      const setCategories=(fn)=>setProjects(prev=>prev.map(p=>p.id!==activeProjectId?p:{...p,categories:typeof fn==='function'?fn(p.categories):fn}));
-      const setSelectedCutsForMerge=(fn)=>setProjects(prev=>prev.map(p=>p.id!==activeProjectId?p:{...p,selectedCutsForMerge:typeof fn==='function'?fn(p.selectedCutsForMerge||[]):fn}));
+      const setCuts=fn=>setProjects(prev=>prev.map(p=>p.id!==activeProjectId?p:{...p,cuts:typeof fn==='function'?fn(p.cuts):fn}));
+      const setFrames=fn=>setProjects(prev=>prev.map(p=>p.id!==activeProjectId?p:{...p,frames:typeof fn==='function'?fn(p.frames||[]):fn}));
+      const setCategories=fn=>setProjects(prev=>prev.map(p=>p.id!==activeProjectId?p:{...p,categories:typeof fn==='function'?fn(p.categories):fn}));
+      const setSelectedCutsForMerge=fn=>setProjects(prev=>prev.map(p=>p.id!==activeProjectId?p:{...p,selectedCutsForMerge:typeof fn==='function'?fn(p.selectedCutsForMerge||[]):fn}));
       const setVideoFileAndSrc=(file,src)=>{
         setLoadedVideos(prev=>({...prev,[activeProjectId]:{file,src}}));
         setProjects(prev=>prev.map(p=>p.id!==activeProjectId?p:{...p,videoName:file?.name||''}));
@@ -378,11 +429,11 @@
         if(editingContext.type==='frame')setFrames(prev=>prev.map(f=>f.id===editingContext.id?{...f,shapes}:f));
       },[shapes,editingContext]);
 
-      const formatTime=(secs)=>{if(isNaN(secs)||secs==null)return'00:00';const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=Math.floor(secs%60);return[h>0?String(h).padStart(2,'0'):null,String(m).padStart(2,'0'),String(s).padStart(2,'0')].filter(Boolean).join(':');};
-      const parseTimeInput=(str)=>{const parts=str.split(':').map(Number);if(parts.length===3)return parts[0]*3600+parts[1]*60+parts[2];if(parts.length===2)return parts[0]*60+parts[1];return parseFloat(str)||0;};
+      const formatTime=secs=>{if(isNaN(secs)||secs==null)return'00:00';const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=Math.floor(secs%60);return[h>0?String(h).padStart(2,'0'):null,String(m).padStart(2,'0'),String(s).padStart(2,'0')].filter(Boolean).join(':');};
+      const parseTimeInput=str=>{const parts=str.split(':').map(Number);if(parts.length===3)return parts[0]*3600+parts[1]*60+parts[2];if(parts.length===2)return parts[0]*60+parts[1];return parseFloat(str)||0;};
       const showToast=(message,type='success')=>{setNotification({message,type});setTimeout(()=>setNotification(null),3500);};
 
-      const handleVideoUpload=(e)=>{
+      const handleVideoUpload=e=>{
         const file=e.target.files[0];if(!file)return;
         if(videoSrc)URL.revokeObjectURL(videoSrc);
         const src=URL.createObjectURL(file);
@@ -393,32 +444,26 @@
         showToast(`✓ Video vinculado: ${file.name}`);
       };
 
-      const handleImportPhoto=(e)=>{
+      const handleImportPhoto=e=>{
         const file=e.target.files[0];if(!file)return;
         const reader=new FileReader();
-        reader.onload=(ev)=>{
+        reader.onload=ev=>{
           const img=new Image();
           img.onload=()=>{
-            const targetW=videoDimensions.width||1920, targetH=videoDimensions.height||1080;
-            const canvas=document.createElement('canvas');
-            canvas.width=targetW;canvas.height=targetH;
-            const ctx=canvas.getContext('2d');
-            ctx.fillStyle='#000000';ctx.fillRect(0,0,targetW,targetH);
+            const targetW=videoDimensions.width||1920,targetH=videoDimensions.height||1080;
+            const canvas=document.createElement('canvas');canvas.width=targetW;canvas.height=targetH;
+            const ctx=canvas.getContext('2d');ctx.fillStyle='#000000';ctx.fillRect(0,0,targetW,targetH);
             const ratio=Math.min(targetW/img.width,targetH/img.height);
-            const dw=img.width*ratio,dh=img.height*ratio;
-            const dx=(targetW-dw)/2,dy=(targetH-dh)/2;
-            ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-            ctx.drawImage(img,dx,dy,dw,dh);
+            const dw=img.width*ratio,dh=img.height*ratio,dx=(targetW-dw)/2,dy=(targetH-dh)/2;
+            ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(img,dx,dy,dw,dh);
             const dataUrl=canvas.toDataURL('image/jpeg',0.92);
             const nf={id:`frame-${Date.now()}`,dataUrl,time:currentTime,timestamp:Date.now(),shapes:[],isImported:true,fileName:file.name};
-            setFrames(prev=>[...prev,nf]);
-            setSelectedCutsForMerge(prev=>[...prev,nf.id]);
+            setFrames(prev=>[...prev,nf]);setSelectedCutsForMerge(prev=>[...prev,nf.id]);
             showToast(`✓ Foto importada: ${file.name}`);
           };
           img.src=ev.target.result;
         };
-        reader.readAsDataURL(file);
-        e.target.value='';
+        reader.readAsDataURL(file);e.target.value='';
       };
 
       const executePlayCompIndex=(index,playlist)=>{
@@ -445,7 +490,7 @@
       };
 
       useEffect(()=>{
-        const onKey=(e)=>{
+        const onKey=e=>{
           if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)||isExporting||confirmModal.isOpen)return;
           if((e.key==='Delete'||e.key==='Backspace')&&selectedShapeId){e.preventDefault();setShapes(prev=>prev.filter(s=>s.id!==selectedShapeId));setSelectedShapeId(null);return;}
           if(e.code==='Space'){e.preventDefault();togglePlay();return;}
@@ -460,9 +505,9 @@
       },[categories,videoSrc,duration,isExporting,confirmModal.isOpen,selectedShapeId]);
 
       const togglePlay=()=>{if(!videoRef.current)return;if(videoRef.current.paused)videoRef.current.play().then(()=>setIsPlaying(true)).catch(()=>{});else{videoRef.current.pause();setIsPlaying(false);}};
-      const skipTime=(a)=>{if(!videoRef.current)return;const t=Math.max(0,Math.min(videoRef.current.duration||Infinity,videoRef.current.currentTime+a));videoRef.current.currentTime=t;setCurrentTime(t);};
-      const handleSpeedChange=(rate)=>{if(!videoRef.current)return;videoRef.current.playbackRate=rate;setPlaybackRate(rate);};
-      const handleProgressClick=(e)=>{if(!videoRef.current||!duration)return;const rect=e.currentTarget.getBoundingClientRect();videoRef.current.currentTime=((e.clientX-rect.left)/rect.width)*duration;if(isPlayCompActive){setIsPlayCompActive(false);setActiveCompFrame(null);}};
+      const skipTime=a=>{if(!videoRef.current)return;const t=Math.max(0,Math.min(videoRef.current.duration||Infinity,videoRef.current.currentTime+a));videoRef.current.currentTime=t;setCurrentTime(t);};
+      const handleSpeedChange=rate=>{if(!videoRef.current)return;videoRef.current.playbackRate=rate;setPlaybackRate(rate);};
+      const handleProgressClick=e=>{if(!videoRef.current||!duration)return;const rect=e.currentTarget.getBoundingClientRect();videoRef.current.currentTime=((e.clientX-rect.left)/rect.width)*duration;if(isPlayCompActive){setIsPlayCompActive(false);setActiveCompFrame(null);}};
 
       const handleCutEdgeDrag=(e,cutId,edge)=>{
         e.stopPropagation();
@@ -470,12 +515,12 @@
         const startVal=edge==='start'?cut.start:cut.end;
         const barEl=e.currentTarget.closest('[data-timeline]');
         const barRect=barEl?.getBoundingClientRect();if(!barRect)return;
-        const onMove=(ev)=>{const dx=ev.clientX-startX,dSecs=(dx/barRect.width)*duration,newVal=Math.max(0,Math.min(duration,startVal+dSecs));setCuts(prev=>prev.map(c=>{if(c.id!==cutId)return c;if(edge==='start')return{...c,start:+Math.min(newVal,c.end-0.5).toFixed(2)};return{...c,end:+Math.max(newVal,c.start+0.5).toFixed(2)};}));};
+        const onMove=ev=>{const dx=ev.clientX-startX,dSecs=(dx/barRect.width)*duration,newVal=Math.max(0,Math.min(duration,startVal+dSecs));setCuts(prev=>prev.map(c=>{if(c.id!==cutId)return c;if(edge==='start')return{...c,start:+Math.min(newVal,c.end-0.5).toFixed(2)};return{...c,end:+Math.max(newVal,c.start+0.5).toFixed(2)};}));};
         const onUp=()=>{window.removeEventListener('mousemove',onMove);window.removeEventListener('mouseup',onUp);};
         window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);
       };
 
-      const triggerCut=(cat)=>{
+      const triggerCut=cat=>{
         if(!videoSrc||!videoRef.current){showToast("Cargá un video primero","warning");return;}
         const t=videoRef.current.currentTime,dur=videoRef.current.duration||duration;
         const lead=parseFloat(cat.lead)||0,lag=parseFloat(cat.lag)||0;
@@ -501,7 +546,7 @@
         return Math.abs(dx)<=(fs.w||160)/2&&Math.abs(dy)<=(fs.h||120)/2;
       };
 
-      const handleFocusPointerDown=(e)=>{
+      const handleFocusPointerDown=e=>{
         const pos=getMousePos(e);
         if(focusShape&&isInsideFocusShape(pos,focusShape)){setIsDraggingFocus(true);setFocusDragOffset({x:pos.x-focusShape.x,y:pos.y-focusShape.y});return;}
         const r=Math.min(videoDimensions.width,videoDimensions.height)*0.12;
@@ -509,7 +554,7 @@
         setFocusShape(nf);setShapes(prev=>[...prev,nf]);setSelectedShapeId(nf.id);
       };
 
-      const handleFocusPointerMove=(e)=>{
+      const handleFocusPointerMove=e=>{
         if(!isDraggingFocus||!focusShape)return;
         const pos=getMousePos(e);
         const nx=pos.x-focusDragOffset.x,ny=pos.y-focusDragOffset.y;
@@ -519,7 +564,7 @@
 
       const handleFocusPointerUp=()=>setIsDraggingFocus(false);
 
-      const handleFocusToolSelect=(tool)=>{
+      const handleFocusToolSelect=tool=>{
         if(focusTool===tool){setFocusTool(null);setFocusShape(null);}
         else{setFocusTool(tool);setFocusShape(null);setSelectedShapeId(null);setDrawTool('cursor');}
       };
@@ -529,9 +574,8 @@
         const vw=videoDimensions.width,vh=videoDimensions.height;
         const r=radius||80,hw=(w||160)/2,hh=(h||120)/2;
         const cur=isDraggingFocus?'grabbing':'grab';
-        const onPD=(e)=>{e.stopPropagation();setFocusShape(fs);setSelectedShapeId(id);setIsDraggingFocus(true);const pos=getMousePos(e);setFocusDragOffset({x:pos.x-x,y:pos.y-y});};
+        const onPD=e=>{e.stopPropagation();setFocusShape(fs);setSelectedShapeId(id);setIsDraggingFocus(true);const pos=getMousePos(e);setFocusDragOffset({x:pos.x-x,y:pos.y-y});};
         const selRing=isSel?<circle cx={x} cy={y} r={r+8} fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeDasharray="4,4"/>:null;
-
         if(type==='focus_spotlight')return(
           <g key={id} style={{cursor:cur}} onPointerDown={onPD}>
             <defs><mask id={`sm-${id}`}><rect x="0" y="0" width={vw} height={vh} fill="white"/><circle cx={x} cy={y} r={r} fill="black"/></mask></defs>
@@ -580,6 +624,158 @@
         return<>{fs.map(f=>renderSingleFocus(f,f.id===selectedShapeId))}</>;
       };
 
+      // ────────────────────────────────────────────
+      //  TACTICAL SPOTLIGHT — renderizado SVG
+      //  Tres capas: cono (detrás) → jugador → anillo (delante)
+      // ────────────────────────────────────────────
+
+      // Calcula geometría del spotlight a partir de posición interpolada
+      const getSpotlightGeometry=(shape,pos)=>{
+        const w=shape.spotWidth||80;
+        const h=shape.spotHeight||160;
+        const cx=pos.x;
+        const cy=pos.y;
+        const feetX=cx;
+        const feetY=cy+h*0.5;
+        const topY=cy-h*1.5;
+        return{cx,cy,feetX,feetY,topY,w,h};
+      };
+
+      // ── CONO DE LUZ (se renderiza DETRÁS del jugador) ──
+      const renderSpotlightCone=(shape)=>{
+        if(!isShapeVisible(shape))return null;
+        const pos=getSpotlightPos(shape,currentTime);
+        const{cx,feetX,feetY,topY,w}=getSpotlightGeometry(shape,pos);
+        const color=shape.color||'#d946ef';
+        const gradId=`sg-cone-${shape.id}`;
+        const isSel=selectedShapeId===shape.id;
+
+        // Puntos del trapecio cónico
+        const topW=w*0.10;
+        const botW=w*0.85;
+        const pts=`${feetX-topW/2},${topY} ${feetX+topW/2},${topY} ${feetX+botW/2},${feetY} ${feetX-botW/2},${feetY}`;
+
+        return(
+          <g key={`cone-${shape.id}`} style={{pointerEvents:'none'}}>
+            <defs>
+              <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stopColor={color} stopOpacity="0"/>
+                <stop offset="60%"  stopColor={color} stopOpacity="0.12"/>
+                <stop offset="100%" stopColor={color} stopOpacity="0.32"/>
+              </linearGradient>
+            </defs>
+            <polygon
+              points={pts}
+              fill={`url(#${gradId})`}
+              className={isSel?'spotlight-cone-anim':''}
+              style={{mixBlendMode:'screen'}}
+            />
+          </g>
+        );
+      };
+
+      // ── ANILLO ELÍPTICO (se renderiza DELANTE del jugador) ──
+      const renderSpotlightRing=(shape)=>{
+        if(!isShapeVisible(shape))return null;
+        const pos=getSpotlightPos(shape,currentTime);
+        const{cx,feetX,feetY,w,h}=getSpotlightGeometry(shape,pos);
+        const color=shape.color||'#d946ef';
+        const isSel=selectedShapeId===shape.id;
+        const gradId=`sg-ring-${shape.id}`;
+
+        const rx=w*0.55;
+        const ry=rx*0.22;
+        const rxInner=rx*0.72;
+        const ryInner=ry*0.72;
+
+        // Handle de arrastre — solo visible cuando está seleccionado
+        const onPD=e=>{
+          if(drawTool!=='cursor')return;
+          e.stopPropagation();
+          const mp=getMousePos(e);
+          setInteraction({
+            mode:'drag_spotlight',
+            shapeId:shape.id,
+            startPos:mp,
+            origPos:{x:pos.x,y:pos.y},
+          });
+          setSelectedShapeId(shape.id);
+        };
+
+        return(
+          <g key={`ring-${shape.id}`}
+            onPointerDown={onPD}
+            onContextMenu={e=>handleShapeContextMenu(e,shape.id)}
+            style={{cursor:drawTool==='cursor'?'move':'default'}}>
+
+            <defs>
+              <radialGradient id={gradId} cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stopColor={color} stopOpacity="0.18"/>
+                <stop offset="70%"  stopColor={color} stopOpacity="0.08"/>
+                <stop offset="100%" stopColor={color} stopOpacity="0"/>
+              </radialGradient>
+            </defs>
+
+            {/* Relleno suave interior */}
+            <ellipse cx={feetX} cy={feetY} rx={rx*0.9} ry={ry*0.9}
+              fill={`url(#${gradId})`}/>
+
+            {/* Anillo exterior — línea dashed rotante */}
+            <ellipse cx={feetX} cy={feetY} rx={rx} ry={ry}
+              fill="none"
+              stroke={color}
+              strokeWidth="2.5"
+              strokeOpacity="0.9"
+              strokeDasharray="10,5"
+              className="spotlight-ring-anim"/>
+
+            {/* Anillo interior más tenue */}
+            <ellipse cx={feetX} cy={feetY} rx={rxInner} ry={ryInner}
+              fill="none"
+              stroke={color}
+              strokeWidth="1.2"
+              strokeOpacity="0.4"
+              strokeDasharray="6,8"
+              className="spotlight-ring-anim"
+              style={{animationDirection:'reverse',animationDuration:'4s'}}/>
+
+            {/* Punto central en los pies */}
+            <ellipse cx={feetX} cy={feetY} rx={rx*0.15} ry={ry*0.5}
+              fill={color} opacity="0.5"
+              className={isSel?'spotlight-pulse-anim':''}/>
+
+            {/* Borde de selección */}
+            {isSel&&(
+              <>
+                <ellipse cx={feetX} cy={feetY} rx={rx+8} ry={ry+4}
+                  fill="none" stroke="rgba(255,255,255,0.4)"
+                  strokeWidth="1" strokeDasharray="4,4"/>
+                {/* Handle en el centro para arrastrar */}
+                <circle cx={cx} cy={pos.y} r="8"
+                  fill={color} opacity="0.85"
+                  stroke="white" strokeWidth="2"
+                  style={{cursor:'move'}}/>
+                {/* Indicador de tiempo del keyframe más cercano */}
+                {shape.keyframes?.length>0&&(()=>{
+                  const nearest=shape.keyframes.reduce((a,b)=>Math.abs(b.time-currentTime)<Math.abs(a.time-currentTime)?b:a);
+                  const isKF=Math.abs(nearest.time-currentTime)<0.15;
+                  return isKF?(
+                    <g>
+                      <rect x={cx-30} y={pos.y-h*0.5-32} width="60" height="18" rx="5"
+                        fill={color} opacity="0.9"/>
+                      <text x={cx} y={pos.y-h*0.5-20} textAnchor="middle"
+                        fill="white" fontSize="10" fontWeight="700" fontFamily="Inter,sans-serif">
+                        KF {formatTime(nearest.time)}
+                      </text>
+                    </g>
+                  ):null;
+                })()}
+              </>
+            )}
+          </g>
+        );
+      };
+
       // ── CONTEXT MENU ──
       const handleShapeContextMenu=(e,shapeId)=>{
         e.preventDefault();e.stopPropagation();
@@ -588,12 +784,35 @@
         setContextMenu({x:e.clientX,y:e.clientY,shapeId,hasAnimation:!!shape?.animation});
       };
 
-      // ── POINTER HANDLERS ──
-      const handlePointerDown=(e)=>{
+      // ── POINTER HANDLERS PRINCIPALES ──
+      const handlePointerDown=e=>{
         setContextMenu(null);
         if(isPlaying||isPlayCompActive)return;
         if(focusTool){handleFocusPointerDown(e);return;}
-        if(drawTool==='cursor'){if(e.target.tagName==='svg'){selectedShapeId?setSelectedShapeId(null):togglePlay();}return;}
+
+        // ✅ CREAR TACTICAL SPOTLIGHT — arrastrar sobre el jugador
+        if(drawTool==='tactical_spotlight'){
+          const pos=getMousePos(e);
+          const ns={
+            id:'shape-'+Date.now(),
+            type:'tactical_spotlight',
+            color:spotlightColor,
+            startX:pos.x,startY:pos.y,
+            currentX:pos.x,currentY:pos.y,
+            spotWidth:0,spotHeight:0,
+            timeStart:currentTime,
+            duration:'infinite',
+            animation:null,
+            keyframes:[],
+          };
+          setCurrentShape(ns);setInteraction({mode:'draw'});setSelectedShapeId(null);
+          return;
+        }
+
+        if(drawTool==='cursor'){
+          if(e.target.tagName==='svg'){selectedShapeId?setSelectedShapeId(null):togglePlay();}
+          return;
+        }
         const pos=getMousePos(e);
         if(drawTool==='text'){
           const dw=videoDimensions.width*0.22,dh=videoDimensions.height*0.14;
@@ -610,7 +829,12 @@
       const handleShapePointerDown=(e,shapeId)=>{
         if(drawTool!=='cursor')return;
         e.stopPropagation();
-        const pos=getMousePos(e),shape=shapes.find(s=>s.id===shapeId);
+        const shape=shapes.find(s=>s.id===shapeId);
+        if(shape?.type==='tactical_spotlight'){
+          // El spotlight tiene su propio handler en renderSpotlightRing
+          return;
+        }
+        const pos=getMousePos(e);
         setInteraction({mode:'drag_shape',shapeId,startPos:pos,originalShape:JSON.parse(JSON.stringify(shape))});
         setSelectedShapeId(shapeId);
       };
@@ -620,8 +844,7 @@
         const x=Math.min(sx,cx),y=Math.min(sy,cy),w=Math.abs(cx-sx),h=Math.abs(cy-sy);
         if(w<15||h<15){showToast("Área muy pequeña","warning");setDrawTool('cursor');return;}
         const scX=video.videoWidth/videoDimensions.width,scY=video.videoHeight/videoDimensions.height;
-        const canvas=document.createElement('canvas');
-        canvas.width=Math.round(w*scX);canvas.height=Math.round(h*scY);
+        const canvas=document.createElement('canvas');canvas.width=Math.round(w*scX);canvas.height=Math.round(h*scY);
         const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
         try{
           ctx.drawImage(video,Math.round(x*scX),Math.round(y*scY),Math.round(w*scX),Math.round(h*scY),0,0,canvas.width,canvas.height);
@@ -633,16 +856,50 @@
         }catch{showToast("Error de acceso al video","error");}
       };
 
-      const handlePointerMove=(e)=>{
+      const handlePointerMove=e=>{
         if(focusTool){handleFocusPointerMove(e);return;}
         const pos=getMousePos(e);
+
+        // ✅ MOVER SPOTLIGHT — agrega keyframe al soltar
+        if(interaction?.mode==='drag_spotlight'){
+          const dx=pos.x-interaction.startPos.x;
+          const dy=pos.y-interaction.startPos.y;
+          const newX=interaction.origPos.x+dx;
+          const newY=interaction.origPos.y+dy;
+          setShapes(prev=>prev.map(s=>{
+            if(s.id!==interaction.shapeId)return s;
+            // Actualizar keyframe más cercano al tiempo actual para preview en tiempo real
+            const kf=[...s.keyframes];
+            const idx=kf.findIndex(k=>Math.abs(k.time-currentTime)<0.15);
+            if(idx>=0){kf[idx]={...kf[idx],x:newX,y:newY};}
+            else{
+              // Insertar nuevo keyframe temporal para preview
+              kf.push({time:currentTime,x:newX,y:newY,temp:true});
+              kf.sort((a,b)=>a.time-b.time);
+            }
+            return{...s,keyframes:kf};
+          }));
+          return;
+        }
+
         if(interaction?.mode==='draw'&&currentShape){
           let u={...currentShape,currentX:pos.x,currentY:pos.y};
+
+          // ✅ Preview del spotlight mientras se arrastra
+          if(u.type==='tactical_spotlight'){
+            const w=Math.abs(pos.x-u.startX);
+            const h=Math.abs(pos.y-u.startY);
+            u.spotWidth=w;u.spotHeight=h;
+            const cx=(u.startX+pos.x)/2;
+            const cy=(u.startY+pos.y)/2;
+            u.initX=cx;u.initY=cy;
+          }
+
           if(u.type==='rect'||u.type==='clone')u.points=[{x:u.startX,y:u.startY},{x:pos.x,y:u.startY},{x:pos.x,y:pos.y},{x:u.startX,y:pos.y}];
           else if(u.type==='arrow_concave'||u.type==='arrow_convex'){const dx=pos.x-u.startX,dy=pos.y-u.startY,len=Math.sqrt(dx*dx+dy*dy);let nx=-dy/(len||1),ny=dx/(len||1);if(u.type==='arrow_concave'){nx=-nx;ny=-ny;}u.points=[{x:u.startX,y:u.startY},{x:(u.startX+pos.x)/2+nx*len*0.25,y:(u.startY+pos.y)/2+ny*len*0.25},{x:pos.x,y:pos.y}];}
           else if(u.type==='freehand')u.points=[...u.points,pos];
           setCurrentShape(u);
-        } else if(interaction?.mode==='drag_handle'){
+        }else if(interaction?.mode==='drag_handle'){
           setShapes(prev=>prev.map(s=>{
             if(s.id!==interaction.shapeId)return s;
             const n={...s};
@@ -652,7 +909,7 @@
             else if(s.type==='arrow_concave'||s.type==='arrow_convex'){n.points[interaction.handleIndex]=pos;if(interaction.handleIndex===0){n.startX=pos.x;n.startY=pos.y;}if(interaction.handleIndex===2){n.currentX=pos.x;n.currentY=pos.y;}}
             return n;
           }));
-        } else if(interaction?.mode==='drag_shape'){
+        }else if(interaction?.mode==='drag_shape'){
           const dx=pos.x-interaction.startPos.x,dy=pos.y-interaction.startPos.y,o=interaction.originalShape;
           setShapes(prev=>prev.map(s=>{
             if(s.id!==interaction.shapeId)return s;
@@ -664,9 +921,50 @@
         }
       };
 
-      const handlePointerUp=()=>{
+      const handlePointerUp=e=>{
         if(focusTool){handleFocusPointerUp();return;}
+
+        // ✅ SOLTAR SPOTLIGHT — guardar keyframe definitivo
+        if(interaction?.mode==='drag_spotlight'){
+          setShapes(prev=>prev.map(s=>{
+            if(s.id!==interaction.shapeId)return s;
+            // Limpiar flags temp y ordenar keyframes
+            const kf=s.keyframes
+              .map(k=>({...k,temp:undefined}))
+              .filter((k,i,arr)=>arr.findIndex(a=>Math.abs(a.time-k.time)<0.05)===i)
+              .sort((a,b)=>a.time-b.time);
+            return{...s,keyframes:kf};
+          }));
+          showToast("✓ Keyframe de tracking guardado","success");
+          setInteraction(null);
+          return;
+        }
+
         if(interaction?.mode==='draw'&&currentShape){
+          // ✅ FINALIZAR SPOTLIGHT — calcular dimensiones y primer keyframe
+          if(currentShape.type==='tactical_spotlight'){
+            const x=Math.min(currentShape.startX,currentShape.currentX);
+            const y=Math.min(currentShape.startY,currentShape.currentY);
+            const w=Math.abs(currentShape.currentX-currentShape.startX);
+            const h=Math.abs(currentShape.currentY-currentShape.startY);
+            if(w<20||h<20){showToast("Área muy pequeña para el spotlight","warning");setCurrentShape(null);setInteraction(null);return;}
+            const cx=x+w/2,cy=y+h/2;
+            const ns={
+              ...currentShape,
+              spotWidth:w,
+              spotHeight:h,
+              initX:cx,
+              initY:cy,
+              keyframes:[{time:currentTime,x:cx,y:cy}],
+            };
+            setShapes(prev=>[...prev,ns]);
+            setSelectedShapeId(ns.id);
+            setDrawTool('cursor');
+            showToast(`✓ Spotlight creado — pausá el video y arrastralo para agregar puntos de tracking`,"success");
+            setCurrentShape(null);setInteraction(null);
+            return;
+          }
+
           if(currentShape.type==='clone')createPlayerClone(currentShape.startX,currentShape.startY,currentShape.currentX,currentShape.currentY);
           else{setShapes(prev=>[...prev,currentShape]);setSelectedShapeId(currentShape.id);setDrawTool('cursor');}
           setCurrentShape(null);
@@ -674,25 +972,27 @@
         setInteraction(null);
       };
 
-      const isShapeVisible=(shape)=>{
+      const isShapeVisible=shape=>{
         if(activeCompFrame||editingContext.type==='frame')return true;
         if(shape.duration==='infinite'||shape.duration===undefined||shape.alwaysVisible)return true;
         const st=shape.timeStart??0,dur=parseFloat(shape.duration)||3;
         return currentTime>=st&&currentTime<=(st+dur);
       };
 
-      const getShapeAnimStyle=(animation)=>{
+      const getShapeAnimStyle=animation=>{
         if(!animation)return{};
         switch(animation){
           case'pulse':return{animation:'shapePulse 1.5s ease-in-out infinite'};
           case'fadein':return{animation:'shapeFadeIn 0.4s ease-out forwards'};
-          case'spin':return{animation:'shapeBorderSpin 1.5s linear infinite'};
           case'vibrate':return{animation:'shapeVibrate 0.3s ease-in-out infinite'};
           default:return{};
         }
       };
 
+      // ── RENDER SVG SHAPES (shapes normales — sin tactical_spotlight) ──
       const renderShape=(shape,isCurrent=false)=>{
+        // Los tactical_spotlight se renderizan por separado en 3 pasadas
+        if(shape.type==='tactical_spotlight')return null;
         if(!isCurrent&&!isShapeVisible(shape))return null;
         const isSel=selectedShapeId===shape.id&&!isCurrent;
         const{type,color,startX,startY,currentX,currentY,points,id}=shape;
@@ -704,10 +1004,17 @@
           const pts=points.map(p=>`${p.x},${p.y}`).join(' ');
           el=<polygon points={pts} stroke={color} fill={`${color}22`} strokeWidth="2.5" style={{...animStyle,...selGlow}}/>;
           if(isSel)handles=points.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r="6" fill="#1e1e2e" stroke={color} strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,i)} style={{cursor:'pointer'}}/>);
-        } else if(type==='clone'){
+        }else if(type==='clone'){
           const x=Math.min(startX,currentX),y=Math.min(startY,currentY),w=Math.abs(currentX-startX),h=Math.abs(currentY-startY);
           el=<g><rect x={x} y={y} width={w} height={h} stroke={color} fill="none" strokeWidth="2" strokeDasharray="6,4"/><text x={x+6} y={y-8} fill={color} fontSize="11" fontWeight="700" fontFamily="Inter,sans-serif">Seleccionando área...</text></g>;
-        } else if(type==='player_clone'){
+        }else if(type==='tactical_spotlight'&&isCurrent){
+          // Preview mientras se dibuja
+          const x=Math.min(startX,currentX),y=Math.min(startY,currentY),w=Math.abs(currentX-startX),h=Math.abs(currentY-startY);
+          el=<g>
+            <rect x={x} y={y} width={w} height={h} stroke={spotlightColor} fill={`${spotlightColor}11`} strokeWidth="2" strokeDasharray="8,4"/>
+            <text x={x+w/2} y={y+h/2} textAnchor="middle" dominantBaseline="middle" fill={spotlightColor} fontSize="13" fontWeight="700" fontFamily="Inter,sans-serif">🔦 Spotlight</text>
+          </g>;
+        }else if(type==='player_clone'){
           const minX=Math.min(...points.map(p=>p.x)),minY=Math.min(...points.map(p=>p.y));
           const maxX=Math.max(...points.map(p=>p.x)),maxY=Math.max(...points.map(p=>p.y));
           el=<g style={animStyle}>
@@ -716,13 +1023,13 @@
             {shape.hasTrail&&shape.trailPoints?.length>1&&<path d={`M ${shape.trailPoints.map(p=>`${p.x},${p.y}`).join(' L ')}`} stroke={color} fill="none" strokeWidth="2.5" strokeDasharray="8,5" opacity="0.8"/>}
           </g>;
           if(isSel)handles=points.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r="6" fill="#1e1e2e" stroke={color} strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,i)} style={{cursor:'pointer'}}/>);
-        } else if(type==='circle'){
+        }else if(type==='circle'){
           const cx=(startX+currentX)/2,cy=(startY+currentY)/2,rx=Math.abs(currentX-startX)/2,ry=Math.abs(currentY-startY)/2;
           el=<ellipse cx={cx} cy={cy} rx={rx} ry={ry} stroke={color} fill={`${color}22`} strokeWidth="2.5" style={{...animStyle,...selGlow}}/>;
           if(isSel){const hp=[{x:cx,y:startY},{x:currentX,y:cy},{x:cx,y:currentY},{x:startX,y:cy}];handles=hp.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r="6" fill="#1e1e2e" stroke={color} strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,i)} style={{cursor:'pointer'}}/>);}
-        } else if(type==='freehand'){
+        }else if(type==='freehand'){
           el=<path d={`M ${points.map(p=>`${p.x},${p.y}`).join(' L ')}`} stroke={color} fill="none" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={animStyle}/>;
-        } else if(type==='arrow'){
+        }else if(type==='arrow'){
           const ang=Math.atan2(currentY-startY,currentX-startX),hl=16;
           el=<g style={{...animStyle,...selGlow}}>
             <line x1={startX} y1={startY} x2={currentX} y2={currentY} stroke={color} strokeWidth="3.5" strokeLinecap="round"/>
@@ -732,7 +1039,7 @@
             <circle key="0" cx={startX} cy={startY} r="6" fill="#1e1e2e" stroke={color} strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,0)} style={{cursor:'pointer'}}/>,
             <circle key="1" cx={currentX} cy={currentY} r="6" fill="#1e1e2e" stroke={color} strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,1)} style={{cursor:'pointer'}}/>
           ];
-        } else if(type==='arrow_concave'||type==='arrow_convex'){
+        }else if(type==='arrow_concave'||type==='arrow_convex'){
           const[p0,p1,p2]=points;let dx=p2.x-p1.x||p2.x-p0.x,dy=p2.y-p1.y||p2.y-p0.y;
           const ang=Math.atan2(dy,dx),hl=16;
           el=<g style={{...animStyle,...selGlow}}>
@@ -745,18 +1052,10 @@
             <circle key="1" cx={p1.x} cy={p1.y} r="6" fill="#d946ef" stroke="white" strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,1)} style={{cursor:'pointer'}}/>,
             <circle key="2" cx={p2.x} cy={p2.y} r="6" fill="#1e1e2e" stroke={color} strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,2)} style={{cursor:'pointer'}}/>
           ];
-        } else if(type==='text'){
+        }else if(type==='text'){
           const hexA=shape.hasBg?`${shape.bgColor||'#0f172a'}${Math.round((shape.bgOpacity??0.85)*255).toString(16).padStart(2,'0')}`:'transparent';
           el=<foreignObject x={startX} y={startY} width={shape.width||280} height={shape.height||100} style={{overflow:'visible',pointerEvents:'auto'}}>
-            <div onPointerDown={e=>handleShapePointerDown(e,id)} style={{
-              color:shape.color,backgroundColor:hexA,
-              fontFamily:shape.fontFamily==='chalk'?'"Comic Sans MS","Chalkboard SE",cursive':shape.fontFamily==='impact'?'Impact,Charcoal,sans-serif':shape.fontFamily==='sans'?'Inter,sans-serif':shape.fontFamily==='serif'?'Georgia,serif':'"Courier New",Courier,monospace',
-              fontSize:`${shape.fontSize||16}px`,fontWeight:shape.isBold?'bold':'normal',fontStyle:shape.isItalic?'italic':'normal',
-              textShadow:shape.hasShadow?'0 2px 8px rgba(0,0,0,0.9)':'none',
-              wordBreak:'break-word',lineHeight:'1.45',padding:'8px 14px',borderRadius:'10px',
-              border:isSel?'2px solid #d946ef':'1px solid transparent',
-              cursor:'move',userSelect:'none',...animStyle,
-            }}>{shape.text||"Escribe aquí..."}</div>
+            <div onPointerDown={e=>handleShapePointerDown(e,id)} style={{color:shape.color,backgroundColor:hexA,fontFamily:shape.fontFamily==='chalk'?'"Comic Sans MS","Chalkboard SE",cursive':shape.fontFamily==='impact'?'Impact,Charcoal,sans-serif':shape.fontFamily==='sans'?'Inter,sans-serif':shape.fontFamily==='serif'?'Georgia,serif':'"Courier New",Courier,monospace',fontSize:`${shape.fontSize||16}px`,fontWeight:shape.isBold?'bold':'normal',fontStyle:shape.isItalic?'italic':'normal',textShadow:shape.hasShadow?'0 2px 8px rgba(0,0,0,0.9)':'none',wordBreak:'break-word',lineHeight:'1.45',padding:'8px 14px',borderRadius:'10px',border:isSel?'2px solid #d946ef':'1px solid transparent',cursor:'move',userSelect:'none',...animStyle}}>{shape.text||"Escribe aquí..."}</div>
           </foreignObject>;
         }
         return(
@@ -769,11 +1068,11 @@
       };
 
       // ────────────────────────────────────────────
-      //  PIZARRA TÁCTICA — cancha HORIZONTAL 900×600
+      //  PIZARRA TÁCTICA
       // ────────────────────────────────────────────
       const TB_W=900,TB_H=600;
 
-      const getTbMousePos=(e)=>{
+      const getTbMousePos=e=>{
         if(!tbSvgRef.current)return{x:0,y:0};
         const pt=tbSvgRef.current.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
         try{const c=pt.matrixTransform(tbSvgRef.current.getScreenCTM().inverse());return{x:c.x,y:c.y};}
@@ -782,14 +1081,14 @@
 
       const openTacticBoard=()=>{setTbFormationChosen(false);setTbShapes([]);setTbPlayers([]);setTbSelectedId(null);setTbTool('cursor');setTbZones(PEP_ZONES);setShowTacticBoard(true);};
 
-      const chooseTbFormation=(f)=>{
+      const chooseTbFormation=f=>{
         const formation=FORMATIONS[f];
         const home=formation.positions.map((pos,i)=>({id:`home-${i}`,team:'home',x:(pos.x/100)*TB_W,y:(pos.y/100)*TB_H,number:String(i===0?1:i),name:'',color:tbHomeColor,size:22}));
         const away=formation.positions.map((pos,i)=>({id:`away-${i}`,team:'away',x:TB_W-(pos.x/100)*TB_W,y:TB_H-(pos.y/100)*TB_H,number:String(i===0?1:i),name:'',color:tbAwayColor,size:22}));
         setTbPlayers([...home,...away]);setTbFormation(f);setTbFormationChosen(true);
       };
 
-      const handleTbPointerDown=(e)=>{
+      const handleTbPointerDown=e=>{
         setTbContextMenu(null);if(tbTool==='cursor')return;
         const pos=getTbMousePos(e);
         const dash=tbLineStyle==='dashed'?'10,6':tbLineStyle==='dotted'?'3,5':'none';
@@ -798,7 +1097,7 @@
         setTbCurrentShape(ns);setTbInteraction({mode:'draw'});setTbSelectedId(null);
       };
 
-      const handleTbPointerMove=(e)=>{
+      const handleTbPointerMove=e=>{
         const pos=getTbMousePos(e);
         if(tbInteraction?.mode==='draw'&&tbCurrentShape){
           let u={...tbCurrentShape,currentX:pos.x,currentY:pos.y};
@@ -806,10 +1105,10 @@
           else if(u.type==='arrow_concave'||u.type==='arrow_convex'){const dx=pos.x-u.startX,dy=pos.y-u.startY,len=Math.sqrt(dx*dx+dy*dy);let nx=-dy/(len||1),ny=dx/(len||1);if(u.type==='arrow_concave'){nx=-nx;ny=-ny;}u.points=[{x:u.startX,y:u.startY},{x:(u.startX+pos.x)/2+nx*len*0.25,y:(u.startY+pos.y)/2+ny*len*0.25},{x:pos.x,y:pos.y}];}
           else if(u.type==='freehand')u.points=[...u.points,pos];
           setTbCurrentShape(u);
-        } else if(tbInteraction?.mode==='drag_shape'){
+        }else if(tbInteraction?.mode==='drag_shape'){
           const dx=pos.x-tbInteraction.startPos.x,dy=pos.y-tbInteraction.startPos.y,o=tbInteraction.originalShape;
           setTbShapes(prev=>prev.map(s=>{if(s.id!==tbInteraction.shapeId)return s;const n={...s,startX:o.startX+dx,startY:o.startY+dy,currentX:o.currentX+dx,currentY:o.currentY+dy};if(s.points)n.points=o.points.map(p=>({x:p.x+dx,y:p.y+dy}));return n;}));
-        } else if(tbInteraction?.mode==='drag_player'){
+        }else if(tbInteraction?.mode==='drag_player'){
           setTbPlayers(prev=>prev.map(p=>{if(p.id!==tbInteraction.playerId)return p;return{...p,x:tbInteraction.origX+(pos.x-tbInteraction.startPos.x),y:tbInteraction.origY+(pos.y-tbInteraction.startPos.y)};}));
         }
       };
@@ -865,6 +1164,10 @@
         );
       };
 
+      // ────────────────────────────────────────────
+      //  EXPORTADOR — renderShapesOnExportCanvas
+      //  Con Tactical Spotlight en 3 pasadas
+      // ────────────────────────────────────────────
       const renderShapesOnExportCanvas=(ctx,drawShapes,canvasWidth,canvasHeight,videoWidth,videoHeight,targetTime,isFrameCtx=false,animTime=0)=>{
         const scaleX=canvasWidth/videoWidth;
         const scaleY=canvasHeight/videoHeight;
@@ -876,10 +1179,43 @@
           return targetTime>=st&&targetTime<=(st+d);
         });
 
-        visible.forEach(shape=>{
+        // ✅ PASADA 1 — Conos de los spotlights (detrás de todo)
+        visible.filter(s=>s.type==='tactical_spotlight').forEach(shape=>{
+          ctx.save();
+          const pos=getSpotlightPos(shape,targetTime);
+          const w=shape.spotWidth||80,h=shape.spotHeight||160;
+          const cx=pos.x*scaleX,cy=pos.y*scaleY;
+          const feetY=cy+h*scaleY*0.5;
+          const topY=cy-h*scaleY*1.5;
+          const topW=w*scaleX*0.10;
+          const botW=w*scaleX*0.85;
+          const feetX=cx;
+          const color=shape.color||'#d946ef';
+
+          // Animación de respiración del cono
+          const breathPhase=Math.sin(animTime*1.8)*0.5+0.5;
+          const baseOpacity=0.32+breathPhase*0.12;
+
+          const grad=ctx.createLinearGradient(feetX,topY,feetX,feetY);
+          grad.addColorStop(0,   hexToRgba(color,0));
+          grad.addColorStop(0.55,hexToRgba(color,0.10+breathPhase*0.05));
+          grad.addColorStop(1,   hexToRgba(color,baseOpacity));
+
+          ctx.fillStyle=grad;
+          ctx.beginPath();
+          ctx.moveTo(feetX-topW/2,topY);
+          ctx.lineTo(feetX+topW/2,topY);
+          ctx.lineTo(feetX+botW/2,feetY);
+          ctx.lineTo(feetX-botW/2,feetY);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        });
+
+        // ✅ PASADA 2 — Shapes normales (flechas, texto, clones, focos, etc.)
+        visible.filter(s=>s.type!=='tactical_spotlight').forEach(shape=>{
           ctx.save();
 
-          // ── Animaciones en canvas ──
           if(shape.animation){
             switch(shape.animation){
               case'pulse':{const phase=Math.sin(animTime*4)*0.5+0.5;ctx.globalAlpha=0.5+phase*0.5;ctx.shadowColor=shape.color;ctx.shadowBlur=8+phase*16;break;}
@@ -969,101 +1305,106 @@
             ctx.fillText('FOCO SEGUIDOR',x*scaleX,(y-hh-17)*scaleY);
 
           }else if(shape.type==='text'){
-            // ✅ FIX DEFINITIVO FONDO DE TEXTO
-            // Medir primero, dibujar el fondo SOLO con la altura real del texto
-            const tx    = shape.startX * scaleX;
-            const ty    = shape.startY * scaleY;
-            const tw    = (shape.width || 280) * scaleX;
-            const fSize = (shape.fontSize || 18) * scaleY;
-            const padX  = 14 * scaleX;
-            const padY  = 10 * scaleY;
-            const rad   = 10 * scaleX;
-            const lh    = fSize * 1.45;
-            const maxW  = tw - padX * 2;
-
-            const fontMap={
-              chalk:'"Comic Sans MS","Chalkboard SE",cursive',
-              impact:'Impact,Charcoal,sans-serif',
-              sans:'Inter,sans-serif',
-              serif:'Georgia,serif',
-              mono:'"Courier New",Courier,monospace',
-            };
-            const fontStr=[
-              shape.isBold?'bold':'',
-              shape.isItalic?'italic':'',
-              `${fSize}px`,
-              fontMap[shape.fontFamily]||fontMap.chalk,
-            ].filter(Boolean).join(' ');
-
-            // ✅ PASO 1: configurar fuente ANTES de medir
-            ctx.font=fontStr;
-            ctx.textBaseline='top';
-
-            // ✅ PASO 2: calcular líneas reales con word wrap
+            const tx=shape.startX*scaleX,ty=shape.startY*scaleY;
+            const tw=(shape.width||280)*scaleX;
+            const fSize=(shape.fontSize||18)*scaleY;
+            const padX=14*scaleX,padY=10*scaleY,rad=10*scaleX,lh=fSize*1.45,maxW=tw-padX*2;
+            const fontMap={chalk:'"Comic Sans MS","Chalkboard SE",cursive',impact:'Impact,Charcoal,sans-serif',sans:'Inter,sans-serif',serif:'Georgia,serif',mono:'"Courier New",Courier,monospace'};
+            const fontStr=[shape.isBold?'bold':'',shape.isItalic?'italic':'',`${fSize}px`,fontMap[shape.fontFamily]||fontMap.chalk].filter(Boolean).join(' ');
+            ctx.font=fontStr;ctx.textBaseline='top';
             const lines=[];
             (shape.text||'').split('\n').forEach(para=>{
               if(para.trim()===''){lines.push('');return;}
-              const words=para.split(' ');
-              let line='';
-              words.forEach((word,i)=>{
-                const test=line+word+' ';
-                if(ctx.measureText(test).width>maxW&&i>0){
-                  lines.push(line.trimEnd());
-                  line=word+' ';
-                }else{line=test;}
-              });
+              const words=para.split(' ');let line='';
+              words.forEach((word,i)=>{const test=line+word+' ';if(ctx.measureText(test).width>maxW&&i>0){lines.push(line.trimEnd());line=word+' ';}else{line=test;}});
               if(line.trim())lines.push(line.trimEnd());
             });
-
-            // ✅ PASO 3: altura real = solo las líneas que hay + padding
             const realTextH=Math.max(1,lines.length)*lh;
             const realBgH=realTextH+padY*2;
-
-            // ✅ PASO 4: dibujar fondo con altura REAL (no shape.height)
             if(shape.hasBg){
-              ctx.fillStyle=shape.bgColor||'#0f172a';
-              ctx.globalAlpha=shape.bgOpacity??0.85;
-              if(shape.hasShadow){
-                ctx.shadowColor='rgba(0,0,0,0.6)';
-                ctx.shadowBlur=16*scaleX;
-                ctx.shadowOffsetY=4*scaleY;
-              }
-              canvasRoundRect(ctx,tx,ty,tw,realBgH,rad);
-              ctx.fill();
-              ctx.globalAlpha=1;
-              ctx.shadowColor='transparent';
-              ctx.shadowBlur=0;
-              ctx.shadowOffsetY=0;
+              ctx.fillStyle=shape.bgColor||'#0f172a';ctx.globalAlpha=shape.bgOpacity??0.85;
+              if(shape.hasShadow){ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=16*scaleX;ctx.shadowOffsetY=4*scaleY;}
+              canvasRoundRect(ctx,tx,ty,tw,realBgH,rad);ctx.fill();
+              ctx.globalAlpha=1;ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
             }
-
-            // ✅ PASO 5: dibujar texto línea por línea
-            ctx.font=fontStr;
-            ctx.textBaseline='top';
-            ctx.fillStyle=shape.color;
-            ctx.globalAlpha=1;
-
-            if(shape.hasShadow){
-              ctx.shadowColor='rgba(0,0,0,0.9)';
-              ctx.shadowBlur=4*scaleX;
-              ctx.shadowOffsetX=2*scaleX;
-              ctx.shadowOffsetY=2*scaleY;
-            }
-
+            ctx.font=fontStr;ctx.textBaseline='top';ctx.fillStyle=shape.color;ctx.globalAlpha=1;
+            if(shape.hasShadow){ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=4*scaleX;ctx.shadowOffsetX=2*scaleX;ctx.shadowOffsetY=2*scaleY;}
             let cy=ty+padY;
-            lines.forEach(line=>{
-              ctx.fillText(line,tx+padX,cy,maxW);
-              cy+=lh;
-            });
-
-            ctx.shadowColor='transparent';
-            ctx.shadowBlur=0;
-            ctx.shadowOffsetX=0;
-            ctx.shadowOffsetY=0;
+            lines.forEach(line=>{ctx.fillText(line,tx+padX,cy,maxW);cy+=lh;});
+            ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
           }
 
           ctx.restore();
         });
+
+        // ✅ PASADA 3 — Anillos de los spotlights (delante de todo)
+        visible.filter(s=>s.type==='tactical_spotlight').forEach(shape=>{
+          ctx.save();
+          const pos=getSpotlightPos(shape,targetTime);
+          const w=shape.spotWidth||80,h=shape.spotHeight||160;
+          const cx=pos.x*scaleX,cy=pos.y*scaleY;
+          const feetX=cx;
+          const feetY=cy+h*scaleY*0.5;
+          const color=shape.color||'#d946ef';
+
+          const rx=w*scaleX*0.55;
+          const ry=rx*0.22;
+
+          // Animación del anillo — rotación del patrón dashed via lineDashOffset
+          const dashOffset=-(animTime*35)%60;
+
+          // Relleno suave interior
+          const radGrad=ctx.createRadialGradient(feetX,feetY,0,feetX,feetY,rx);
+          radGrad.addColorStop(0,   hexToRgba(color,0.18));
+          radGrad.addColorStop(0.6, hexToRgba(color,0.08));
+          radGrad.addColorStop(1,   hexToRgba(color,0));
+          ctx.fillStyle=radGrad;
+          ctx.beginPath();
+          ctx.ellipse(feetX,feetY,rx*0.9,ry*0.9,0,0,Math.PI*2);
+          ctx.fill();
+
+          // Anillo exterior dashed animado
+          ctx.strokeStyle=color;
+          ctx.lineWidth=2.5*scaleX;
+          ctx.globalAlpha=0.92;
+          ctx.setLineDash([10*scaleX,5*scaleX]);
+          ctx.lineDashOffset=dashOffset;
+          ctx.beginPath();
+          ctx.ellipse(feetX,feetY,rx,ry,0,0,Math.PI*2);
+          ctx.stroke();
+
+          // Anillo interior contra-rotante
+          ctx.lineWidth=1.2*scaleX;
+          ctx.globalAlpha=0.4;
+          ctx.setLineDash([6*scaleX,8*scaleX]);
+          ctx.lineDashOffset=-dashOffset*0.7;
+          ctx.beginPath();
+          ctx.ellipse(feetX,feetY,rx*0.72,ry*0.72,0,0,Math.PI*2);
+          ctx.stroke();
+
+          ctx.setLineDash([]);
+          ctx.lineDashOffset=0;
+          ctx.globalAlpha=1;
+
+          // Punto central luminoso
+          const pulsePhase=Math.sin(animTime*3)*0.5+0.5;
+          ctx.fillStyle=color;
+          ctx.globalAlpha=0.4+pulsePhase*0.25;
+          ctx.beginPath();
+          ctx.ellipse(feetX,feetY,rx*0.15,ry*0.5,0,0,Math.PI*2);
+          ctx.fill();
+          ctx.globalAlpha=1;
+
+          ctx.restore();
+        });
       };
+
+      // ✅ Helper: hex a rgba para canvas gradients
+      function hexToRgba(hex,alpha){
+        const h=hex.replace('#','');
+        const r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);
+        return `rgba(${r},${g},${b},${alpha})`;
+      }
 
       // ── CAPTURE FRAME ──
       const captureFrameToProject=async()=>{
@@ -1090,14 +1431,14 @@
       },[isPlaying]);
 
       // ── CUT CONTEXT HANDLERS ──
-      const playCut=(cut)=>{
+      const playCut=cut=>{
         if(!videoRef.current)return;
         setIsPlayCompActive(false);setSelectedCut(cut);setEditingContext({type:'global',id:null});
         setShapes(cut.shapes||[]);videoRef.current.currentTime=Math.max(0,cut.start);
         videoRef.current.play().then(()=>setIsPlaying(true)).catch(()=>{});
       };
 
-      const startEditCutContext=(cut)=>{
+      const startEditCutContext=cut=>{
         if(!videoRef.current)return;
         videoRef.current.pause();setIsPlaying(false);setIsPlayCompActive(false);setSelectedCut(null);
         prevContextRef.current={type:'cut',id:cut.id};
@@ -1106,7 +1447,7 @@
         showToast(`📍 Editando: ${cut.categoryName}`,"info");
       };
 
-      const startEditFrameContext=(frame)=>{
+      const startEditFrameContext=frame=>{
         if(!videoRef.current)return;
         videoRef.current.pause();setIsPlaying(false);setIsPlayCompActive(false);setSelectedCut(null);
         prevContextRef.current={type:'frame',id:frame.id};
@@ -1135,7 +1476,7 @@
         showToast("Compilado detenido","info");
       };
 
-      const deleteCut=(id)=>setConfirmModal({
+      const deleteCut=id=>setConfirmModal({
         isOpen:true,title:"Eliminar Corte",message:"¿Borrar este corte táctico?",
         onConfirm:()=>{
           setCuts(prev=>prev.filter(c=>c.id!==id));
@@ -1162,7 +1503,7 @@
       };
 
       // ── EXPORTAR CLIP INDIVIDUAL ──
-      const exportVideoClip=async(cut)=>{
+      const exportVideoClip=async cut=>{
         const video=videoRef.current;if(!video||!videoSrc)return;
         video.pause();setIsPlaying(false);setSelectedCut(null);setIsPlayCompActive(false);
         setIsExporting(true);setExportProgress(0);setExportingName(cut.categoryName);
@@ -1244,12 +1585,9 @@
               const draw=()=>{
                 if(ticks>=150){if(mr.state==='recording')mr.pause();idx++;setExportProgress(Math.floor((idx/playlist.length)*100));setTimeout(next,150);return;}
                 eCtx.fillStyle='#000000';eCtx.fillRect(0,0,W,H);
-                // ✅ Foto sin distorsión — letterbox
                 const ratio=Math.min(W/img.width,H/img.height);
-                const dw=img.width*ratio,dh=img.height*ratio;
-                const dx=(W-dw)/2,dy=(H-dh)/2;
-                eCtx.imageSmoothingEnabled=true;eCtx.imageSmoothingQuality='high';
-                eCtx.drawImage(img,dx,dy,dw,dh);
+                const dw=img.width*ratio,dh=img.height*ratio,dx=(W-dw)/2,dy=(H-dh)/2;
+                eCtx.imageSmoothingEnabled=true;eCtx.imageSmoothingQuality='high';eCtx.drawImage(img,dx,dy,dw,dh);
                 const animT=ticks/30;
                 renderShapesOnExportCanvas(eCtx,item.shapes||[],W,H,W,H,animT,true,animT);
                 ticks++;rafId=requestAnimationFrame(draw);
@@ -1288,7 +1626,7 @@
       // ── CATEGORY HANDLERS ──
       const handleCategoryChange=(id,field,val)=>setCategories(prev=>prev.map(c=>c.id!==id?c:{...c,[field]:field==='lead'||field==='lag'?val===''?'':Math.max(0,parseFloat(val)||0):val}));
 
-      const handleAddCategory=(e)=>{
+      const handleAddCategory=e=>{
         e.preventDefault();
         if(!newCatName.trim()){showToast("Ponéle un nombre","warning");return;}
         const sc=newCatShortcut.trim().toLowerCase().charAt(0);
@@ -1297,7 +1635,7 @@
         setNewCatName('');setNewCatShortcut('');showToast("✓ Categoría creada");
       };
 
-      const deleteCategory=(id)=>{
+      const deleteCategory=id=>{
         if(categories.length<=1){showToast("Mínimo una categoría","warning");return;}
         setCategories(prev=>prev.filter(c=>c.id!==id));showToast("Categoría eliminada","info");
       };
@@ -1309,7 +1647,7 @@
         showToast("✓ Proyecto exportado");
       };
 
-      const handleImportProject=(e)=>{
+      const handleImportProject=e=>{
         const f=e.target.files[0];if(!f)return;
         const r=new FileReader();
         r.onload=ev=>{
@@ -1322,7 +1660,7 @@
         r.readAsText(f);
       };
 
-      const handleToggleCutCheckbox=(id)=>setSelectedCutsForMerge(prev=>prev.includes(id)?prev.filter(i=>i!==id):[...prev,id]);
+      const handleToggleCutCheckbox=id=>setSelectedCutsForMerge(prev=>prev.includes(id)?prev.filter(i=>i!==id):[...prev,id]);
       const handleSelectAllCuts=()=>setSelectedCutsForMerge([...cuts.map(c=>c.id),...frames.map(f=>f.id)]);
       const handleDeselectAllCuts=()=>setSelectedCutsForMerge([]);
       const moveCutInMergeOrder=(index,dir)=>{
@@ -1332,14 +1670,14 @@
         setSelectedCutsForMerge(o);
       };
 
-      const handleCreateProject=(e)=>{
+      const handleCreateProject=e=>{
         e.preventDefault();if(!newProjName.trim()){showToast("Escribí el nombre del partido","warning");return;}
         const id=`proj-${Date.now()}`;
         setProjects(prev=>[...prev,{id,name:newProjName.trim(),videoName:'',cuts:[],frames:[],categories:DEFAULT_CATEGORIES,selectedCutsForMerge:[]}]);
         setActiveProjectId(id);setNewProjName('');setActiveTab('panel');showToast("✓ Proyecto creado");
       };
 
-      const switchProject=(id)=>{
+      const switchProject=id=>{
         setActiveProjectId(id);setSelectedCut(null);setIsPlayCompActive(false);setIsPlaying(false);
         setShapes([]);setSelectedShapeId(null);setEditingContext({type:'global',id:null});setFocusShape(null);setFocusTool(null);
         showToast(`✓ ${projects.find(p=>p.id===id)?.name}`,"info");
@@ -1376,7 +1714,7 @@
               hasAnimation={contextMenu.hasAnimation}
               onDelete={()=>{setShapes(prev=>prev.filter(s=>s.id!==contextMenu.shapeId));setSelectedShapeId(null);showToast("Figura eliminada","info");}}
               onAnimate={()=>{
-                const anims=['pulse','fadein','spin','vibrate'];
+                const anims=['pulse','fadein','vibrate'];
                 setShapes(prev=>prev.map(s=>{
                   if(s.id!==contextMenu.shapeId)return s;
                   if(s.animation)return{...s,animation:null};
@@ -1441,9 +1779,7 @@
             </div>
           )}
 
-          {/* ══════════════════════════════════════
-              HEADER
-          ══════════════════════════════════════ */}
+          {/* ══ HEADER ══ */}
           <header className="flex-shrink-0 glass border-b border-white/5 px-6 py-3.5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-sm shadow-lg animate-glow"
@@ -1485,9 +1821,7 @@
             </div>
           </header>
 
-          {/* ══════════════════════════════════════
-              MAIN
-          ══════════════════════════════════════ */}
+          {/* ══ MAIN ══ */}
           <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
 
             {/* ── LEFT: PLAYER ── */}
@@ -1496,13 +1830,12 @@
               onMouseMove={handleMouseMoveInPlayer}
               style={{background:'#080810'}}>
 
-              {/* Editing context banner */}
               {editingContext.type!=='global'&&(
-                <div className="flex-shrink-0 fs-hide flex items-center justify-between px-4 py-2.5 border-b border-amber-500/20 animate-fade-up"
+                <div className="flex-shrink-0 fs-hide flex items-center justify-between px-4 py-2.5 border-b border-amber-500/20"
                   style={{background:'rgba(245,158,11,0.08)'}}>
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"/>
-                    <span className="text-xs font-semibold text-amber-300">Editando pizarra de: {getEditingContextName()}</span>
+                    <span className="text-xs font-semibold text-amber-300">Editando: {getEditingContextName()}</span>
                   </div>
                   <button onClick={saveContextAndClose}
                     className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold text-amber-300 hover:text-white transition"
@@ -1512,14 +1845,13 @@
                 </div>
               )}
 
-              {/* Foco banner */}
               {focusTool&&(
                 <div className="flex-shrink-0 fs-hide flex items-center justify-between px-4 py-2 border-b border-fuchsia-500/20"
                   style={{background:'rgba(217,70,239,0.04)'}}>
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse"/>
                     <span className="text-xs font-medium text-fuchsia-300">
-                      🔍 <strong>Foco:</strong> {focusTool==='spotlight'?'Spotlight':focusTool==='zoom'?`Zoom ${zoomLevel}×`:focusTool==='tracker'?'Marcador':'Cuadro'} — Clic para posicionar
+                      🔍 Foco: {focusTool==='spotlight'?'Spotlight':focusTool==='zoom'?`Zoom ${zoomLevel}×`:focusTool==='tracker'?'Marcador':'Cuadro'} — Clic para posicionar
                     </span>
                   </div>
                   <button onClick={()=>{setFocusTool(null);setFocusShape(null);}}
@@ -1528,32 +1860,63 @@
                 </div>
               )}
 
+              {/* ✅ Banner de Tactical Spotlight activo */}
+              {drawTool==='tactical_spotlight'&&(
+                <div className="flex-shrink-0 fs-hide flex items-center justify-between px-4 py-2 border-b border-yellow-500/20"
+                  style={{background:'rgba(234,179,8,0.06)'}}>
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"/>
+                    <span className="text-xs font-medium text-yellow-300">
+                      🔦 <strong>Spotlight de Jugador</strong> — Arrastrá sobre el jugador para crear el efecto
+                    </span>
+                  </div>
+                  <button onClick={()=>setDrawTool('cursor')}
+                    className="text-[11px] font-bold text-yellow-300 hover:text-white px-3 py-1 rounded-lg transition"
+                    style={{background:'rgba(234,179,8,0.12)'}}>Cancelar</button>
+                </div>
+              )}
+
               {/* Video area */}
               <div className="flex-1 flex items-center justify-center overflow-hidden relative p-4 group">
                 {videoSrc?(
                   <div className="relative w-full h-full flex items-center justify-center">
                     <div className="relative shadow-2xl rounded-xl overflow-hidden"
-                      style={{aspectRatio:`${videoDimensions.width}/${videoDimensions.height}`,maxWidth:'100%',maxHeight:'100%',boxShadow:'0 0 80px rgba(217,70,239,0.06)'}}>
+                      style={{aspectRatio:`${videoDimensions.width}/${videoDimensions.height}`,maxWidth:'100%',maxHeight:'100%'}}>
                       <video ref={videoRef} src={videoSrc} className="w-full h-full object-cover"
-                        onClick={focusTool?undefined:togglePlay}
+                        onClick={focusTool||drawTool==='tactical_spotlight'?undefined:togglePlay}
                         onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata}
                         onSeeked={()=>{isTransitioningRef.current=false;}}/>
                       {activeCompFrame&&(
                         <img src={activeCompFrame.dataUrl} className="absolute inset-0 w-full h-full z-20"
                           alt="frame" style={{objectFit:'contain',background:'#000'}}/>
                       )}
+
+                      {/* ✅ SVG con renderizado en 3 pasadas para Tactical Spotlight */}
                       <svg ref={svgRef}
                         viewBox={`0 0 ${videoDimensions.width} ${videoDimensions.height}`}
-                        onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
-                        onPointerUp={handlePointerUp} onPointerLeave={handlePointerUp}
+                        onPointerDown={handlePointerDown}
+                        onPointerMove={handlePointerMove}
+                        onPointerUp={handlePointerUp}
+                        onPointerLeave={handlePointerUp}
                         style={{pointerEvents:(isPlaying||isPlayCompActive)?'none':'auto'}}
-                        className={`absolute inset-0 w-full h-full z-30 touch-none ${drawTool==='text'?'cursor-text':focusTool?'cursor-crosshair':''}`}>
-                        {shapes.map(s=>renderShape(s,false))}
+                        className={`absolute inset-0 w-full h-full z-30 touch-none ${
+                          drawTool==='text'?'cursor-text':
+                          drawTool==='tactical_spotlight'?'cursor-crosshair':
+                          focusTool?'cursor-crosshair':''}`}>
+
+                        {/* PASADA 1: Conos de luz (detrás) */}
+                        {shapes.filter(s=>s.type==='tactical_spotlight').map(s=>renderSpotlightCone(s))}
+
+                        {/* PASADA 2: Shapes normales */}
+                        {shapes.filter(s=>s.type!=='tactical_spotlight').map(s=>renderShape(s,false))}
                         {currentShape&&renderShape(currentShape,true)}
                         {renderFocusOverlay()}
+
+                        {/* PASADA 3: Anillos en los pies (delante) */}
+                        {shapes.filter(s=>s.type==='tactical_spotlight').map(s=>renderSpotlightRing(s))}
                       </svg>
 
-                      {/* ── FULLSCREEN CONTROLS OVERLAY ── */}
+                      {/* Fullscreen controls overlay */}
                       <div className={`fs-controls absolute bottom-0 left-0 right-0 z-40 transition-opacity duration-300 ${showControls?'show':''}`}>
                         <div className="px-4 pb-4 pt-10" style={{background:'linear-gradient(transparent,rgba(0,0,0,0.88))'}}>
                           <div data-timeline className="h-1.5 rounded-full cursor-pointer mb-3 relative"
@@ -1575,8 +1938,7 @@
                               </button>
                               <span className="text-xs font-mono text-slate-300">
                                 <span className="text-fuchsia-300">{formatTime(currentTime)}</span>
-                                <span className="text-slate-500 mx-1">/</span>
-                                {formatTime(duration)}
+                                <span className="text-slate-500 mx-1">/</span>{formatTime(duration)}
                               </span>
                             </div>
                             <button onClick={toggleFullscreen} className="text-white hover:text-fuchsia-300 transition">
@@ -1605,7 +1967,7 @@
                     </div>
                     <h2 className="text-base font-bold mb-2 text-white">Sin video asociado</h2>
                     <p className="text-xs text-slate-500 mb-6">Vinculá una grabación a <span className="text-fuchsia-400 font-semibold">"{activeProject.name}"</span></p>
-                    <button onClick={()=>fileInputRef.current?.click()} className="btn-premium px-6 py-2.5 rounded-lg text-xs font-bold text-white">Elegir archivo de video</button>
+                    <button onClick={()=>fileInputRef.current?.click()} className="btn-premium px-6 py-2.5 rounded-lg text-xs font-bold text-white">Elegir archivo</button>
                   </div>
                 )}
 
@@ -1650,16 +2012,24 @@
                       {tool:'circle',icon:<Icons.Circle className="w-4 h-4"/>,title:'Círculo'},
                       {tool:'clone',icon:<Icons.Clone className="w-4 h-4"/>,title:'Clonar Jugador'},
                       {tool:'text',icon:<Icons.TextIcon className="w-4 h-4"/>,title:'Texto'},
+                      null,
+                      // ✅ NUEVA HERRAMIENTA — Tactical Spotlight
+                      {tool:'tactical_spotlight',icon:<Icons.TacticalSpot className="w-4 h-4"/>,title:'Spotlight de Jugador (tracking)'},
                     ].map((item,i)=>item===null
                       ?<div key={i} className="w-px h-5 mx-0.5" style={{background:'rgba(255,255,255,0.08)'}}/>
                       :<button key={item.tool}
                           onClick={()=>{setDrawTool(item.tool);setSelectedShapeId(null);setFocusTool(null);setFocusShape(null);}}
                           title={item.title}
                           className={`p-1.5 rounded-lg transition-all ${drawTool===item.tool&&!focusTool?'text-white shadow-lg':'text-slate-500 hover:text-white hover:bg-white/5'}`}
-                          style={drawTool===item.tool&&!focusTool?{background:'linear-gradient(135deg,#d946ef44,#7c3aed44)',border:'1px solid rgba(217,70,239,0.4)'}:{}}>
+                          style={drawTool===item.tool&&!focusTool?
+                            item.tool==='tactical_spotlight'?
+                              {background:'linear-gradient(135deg,#b45309,#d97706)',border:'1px solid rgba(217,119,6,0.6)'}:
+                              {background:'linear-gradient(135deg,#d946ef44,#7c3aed44)',border:'1px solid rgba(217,70,239,0.4)'}
+                            :{}}>
                           {item.icon}
                         </button>
                     )}
+
                     {drawTool==='clone'&&(
                       <button onClick={()=>setCloneTrailActive(p=>!p)}
                         className={`ml-1 px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${cloneTrailActive?'text-white':'text-slate-400 hover:text-white hover:bg-white/5'}`}
@@ -1668,7 +2038,10 @@
                         {cloneTrailActive?'Trail ON':'Trail'}
                       </button>
                     )}
+
                     <div className="w-px h-5 mx-0.5" style={{background:'rgba(255,255,255,0.08)'}}/>
+
+                    {/* Focos */}
                     <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mx-1">Foco</span>
                     {[
                       {tool:'spotlight',icon:<Icons.Spotlight className="w-4 h-4"/>,title:'Spotlight',color:'rgba(245,158,11,0.3)'},
@@ -1678,10 +2051,11 @@
                     ].map(item=>(
                       <button key={item.tool} onClick={()=>handleFocusToolSelect(item.tool)} title={item.title}
                         className={`p-1.5 rounded-lg transition-all ${focusTool===item.tool?'text-white':'text-slate-500 hover:text-white hover:bg-white/5'}`}
-                        style={focusTool===item.tool?{background:item.color,border:`1px solid ${item.color.replace('0.3','0.8')}`}:{}}>
+                        style={focusTool===item.tool?{background:item.color,border:`1px solid ${item.color.replace('0.3','0.8)').replace('rgba','rgb')}`}:{}}>
                         {item.icon}
                       </button>
                     ))}
+
                     {focusTool==='zoom'&&(
                       <div className="flex items-center gap-1 px-2 py-1 rounded-lg ml-1" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)'}}>
                         {[1.5,2,3,4].map(z=>(
@@ -1695,8 +2069,18 @@
 
                   {/* Color + acciones */}
                   <div className="flex items-center gap-3">
-                    <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Color</span>
-                    <ColorPicker value={drawColor} onChange={setDrawColor}/>
+                    {/* ✅ Color diferente según herramienta activa */}
+                    {drawTool==='tactical_spotlight'?(
+                      <>
+                        <span className="text-[9px] font-bold text-yellow-600 uppercase tracking-widest">Color Spotlight</span>
+                        <ColorPicker value={spotlightColor} onChange={setSpotlightColor}/>
+                      </>
+                    ):(
+                      <>
+                        <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Color</span>
+                        <ColorPicker value={drawColor} onChange={setDrawColor}/>
+                      </>
+                    )}
                     <div className="flex items-center gap-1 ml-auto">
                       {editingContext.type==='global'&&shapes.length>0&&(
                         <button onClick={saveBoardAsTacticalCut}
@@ -1786,14 +2170,11 @@
               </div>
             </div>
 
-            {/* ══════════════════════════════════════
-                RIGHT: PIZARRA O SIDEBAR
-            ══════════════════════════════════════ */}
+            {/* ══ RIGHT: PIZARRA O SIDEBAR ══ */}
             <div className="w-full lg:w-[460px] flex flex-col h-[60vh] lg:h-auto overflow-hidden border-l border-white/5"
               style={{background:'#0d0d1a'}}>
 
               {showTacticBoard?(
-                // ══ PIZARRA TÁCTICA ══
                 <div className="flex flex-col h-full">
                   <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-white/5"
                     style={{background:'rgba(16,185,129,0.04)'}}>
@@ -1895,21 +2276,19 @@
                             className="p-1.5 text-red-400 hover:text-red-300 disabled:opacity-20 rounded-lg hover:bg-white/5 transition">
                             <Icons.Eraser className="w-3.5 h-3.5"/>
                           </button>
-                          <button onClick={()=>setTbPlayers(()=>{const f=FORMATIONS[tbFormation];if(!f)return[];const home=f.positions.map((pos,i)=>({id:`home-${i}`,team:'home',x:(pos.x/100)*TB_W,y:(pos.y/100)*TB_H,number:String(i===0?1:i),name:'',color:tbHomeColor,size:22}));const away=f.positions.map((pos,i)=>({id:`away-${i}`,team:'away',x:TB_W-(pos.x/100)*TB_W,y:TB_H-(pos.y/100)*TB_H,number:String(i===0?1:i),name:'',color:tbAwayColor,size:22}));return[...home,...away];})}
+                          <button onClick={()=>{const f=FORMATIONS[tbFormation];if(!f)return;const home=f.positions.map((pos,i)=>({id:`home-${i}`,team:'home',x:(pos.x/100)*TB_W,y:(pos.y/100)*TB_H,number:String(i===0?1:i),name:'',color:tbHomeColor,size:22}));const away=f.positions.map((pos,i)=>({id:`away-${i}`,team:'away',x:TB_W-(pos.x/100)*TB_W,y:TB_H-(pos.y/100)*TB_H,number:String(i===0?1:i),name:'',color:tbAwayColor,size:22}));setTbPlayers([...home,...away]);}}
                             className="p-1.5 text-amber-400 hover:text-amber-300 rounded-lg hover:bg-white/5 transition" title="Resetear posiciones">
                             <span className="text-sm font-bold">↺</span>
                           </button>
                         </div>
                       </div>
 
-                      {/* Color pizarra */}
                       <div className="flex-shrink-0 px-3 py-1.5 border-b border-white/5 flex items-center gap-2"
                         style={{background:'rgba(8,8,16,0.6)'}}>
                         <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Color</span>
                         <ColorPicker value={tbColor} onChange={setTbColor}/>
                       </div>
 
-                      {/* Editor jugador */}
                       {editingPlayer&&(()=>{
                         const pl=tbPlayers.find(p=>p.id===editingPlayer);if(!pl)return null;
                         return(
@@ -1935,285 +2314,295 @@
                         );
                       })()}
 
-                      {/* ── CANCHA HORIZONTAL SVG ── */}
+                      {/* Cancha horizontal SVG */}
                       <div className="flex-1 overflow-hidden" style={{background:'#1a3a1a'}}>
                         <svg ref={tbSvgRef} viewBox={`0 0 ${TB_W} ${TB_H}`} className="w-full h-full"
                           onPointerDown={handleTbPointerDown} onPointerMove={handleTbPointerMove}
                           onPointerUp={handleTbPointerUp} onPointerLeave={handleTbPointerUp}
                           style={{cursor:tbTool==='cursor'?'default':'crosshair'}}>
-
-                          {/* Franjas de césped */}
                           <defs>
                             <linearGradient id="grass" x1="0%" y1="0%" x2="100%" y2="0%">
-                              {[0,1,2,3,4,5,6,7].map(i=>(
-                                <stop key={i} offset={`${i*12.5}%`} stopColor={i%2===0?"#1e4d1e":"#1a451a"}/>
-                              ))}
+                              {[0,1,2,3,4,5,6,7].map(i=><stop key={i} offset={`${i*12.5}%`} stopColor={i%2===0?"#1e4d1e":"#1a451a"}/>)}
                             </linearGradient>
                           </defs>
                           <rect width={TB_W} height={TB_H} fill="url(#grass)"/>
-
-                          {/* 20 Zonas Pep Guardiola */}
                           {tbShowZones&&tbZones.map(zone=>{
                             const zx=(zone.x/100)*TB_W,zy=(zone.y/100)*TB_H,zw=(zone.w/100)*TB_W,zh=(zone.h/100)*TB_H;
-                            return(
-                              <g key={zone.id}>
-                                <rect x={zx} y={zy} width={zw} height={zh}
-                                  fill={zone.active?`${zone.color}33`:'transparent'}
-                                  stroke={zone.active?zone.color:'rgba(217,70,239,0.2)'}
-                                  strokeWidth="1" className="zone-cell"
-                                  onClick={()=>setTbZones(prev=>prev.map(z=>z.id===zone.id?{...z,active:!z.active}:z))}/>
-                                <text x={zx+zw/2} y={zy+zh/2} textAnchor="middle" dominantBaseline="middle"
-                                  fill={zone.active?zone.color:'rgba(217,70,239,0.3)'}
-                                  fontSize="9" fontWeight="600" fontFamily="Inter,sans-serif"
-                                  style={{pointerEvents:'none'}}>{zone.name}</text>
-                              </g>
-                            );
+                            return(<g key={zone.id}>
+                              <rect x={zx} y={zy} width={zw} height={zh} fill={zone.active?`${zone.color}33`:'transparent'} stroke={zone.active?zone.color:'rgba(217,70,239,0.2)'} strokeWidth="1" className="zone-cell" onClick={()=>setTbZones(prev=>prev.map(z=>z.id===zone.id?{...z,active:!z.active}:z))}/>
+                              <text x={zx+zw/2} y={zy+zh/2} textAnchor="middle" dominantBaseline="middle" fill={zone.active?zone.color:'rgba(217,70,239,0.3)'} fontSize="9" fontWeight="600" fontFamily="Inter,sans-serif" style={{pointerEvents:'none'}}>{zone.name}</text>
+                            </g>);
                           })}
-
-                          {/* Líneas de cancha horizontal */}
                           <rect x="25" y="20" width={TB_W-50} height={TB_H-40} fill="none" stroke="white" strokeWidth="2.5" opacity="0.9"/>
                           <line x1={TB_W/2} y1="20" x2={TB_W/2} y2={TB_H-20} stroke="white" strokeWidth="1.5" opacity="0.8"/>
                           <circle cx={TB_W/2} cy={TB_H/2} r="60" fill="none" stroke="white" strokeWidth="1.5" opacity="0.8"/>
                           <circle cx={TB_W/2} cy={TB_H/2} r="3" fill="white" opacity="0.9"/>
-                          {/* Área grande izquierda */}
                           <rect x="25" y={TB_H/2-80} width="110" height="160" fill="none" stroke="white" strokeWidth="1.5" opacity="0.8"/>
-                          {/* Área chica izquierda */}
                           <rect x="25" y={TB_H/2-40} width="45" height="80" fill="none" stroke="white" strokeWidth="1.5" opacity="0.8"/>
-                          {/* Punto penal izquierdo */}
                           <circle cx="90" cy={TB_H/2} r="3" fill="white" opacity="0.9"/>
-                          {/* Arco izquierdo — CORRECTO sin semicírculo detrás del arco */}
                           <path d={`M 135 ${TB_H/2-80} A 80 80 0 0 1 135 ${TB_H/2+80}`} fill="none" stroke="white" strokeWidth="1.5" opacity="0.6"/>
-                          {/* Área grande derecha */}
                           <rect x={TB_W-135} y={TB_H/2-80} width="110" height="160" fill="none" stroke="white" strokeWidth="1.5" opacity="0.8"/>
-                          {/* Área chica derecha */}
                           <rect x={TB_W-70} y={TB_H/2-40} width="45" height="80" fill="none" stroke="white" strokeWidth="1.5" opacity="0.8"/>
-                          {/* Punto penal derecho */}
                           <circle cx={TB_W-90} cy={TB_H/2} r="3" fill="white" opacity="0.9"/>
-                          {/* Arco derecho */}
                           <path d={`M ${TB_W-135} ${TB_H/2-80} A 80 80 0 0 0 ${TB_W-135} ${TB_H/2+80}`} fill="none" stroke="white" strokeWidth="1.5" opacity="0.6"/>
-                          {/* Porterías */}
                           <rect x="8" y={TB_H/2-30} width="17" height="60" fill="none" stroke="white" strokeWidth="2" opacity="0.7"/>
                           <rect x={TB_W-25} y={TB_H/2-30} width="17" height="60" fill="none" stroke="white" strokeWidth="2" opacity="0.7"/>
-                          {/* Esquinas */}
                           {[[25,20,1,1],[TB_W-25,20,-1,1],[25,TB_H-20,1,-1],[TB_W-25,TB_H-20,-1,-1]].map(([cx,cy,rx,ry],i)=>(
                             <path key={i} d={`M ${cx} ${cy} A 12 12 0 0 ${rx>0?1:0} ${cx+rx*12} ${cy+ry*12}`} fill="none" stroke="white" strokeWidth="1.5" opacity="0.6"/>
                           ))}
-
-                          {/* Figuras dibujadas */}
                           {tbShapes.map(s=>renderTbShape(s,false))}
                           {tbCurrentShape&&renderTbShape(tbCurrentShape,true)}
-
-                          {/* Fichas de jugadores */}
                           {tbPlayers.map(player=>{
                             const isSel=tbSelectedId===player.id||editingPlayer===player.id;
                             const textColor=getContrastColor(player.color);
-                            return(
-                              <g key={player.id} style={{cursor:'move'}}
-                                onPointerDown={e=>{
-                                  e.stopPropagation();
-                                  setTbSelectedId(player.id);setEditingPlayer(player.id);
-                                  const pos=getTbMousePos(e);
-                                  setTbInteraction({mode:'drag_player',playerId:player.id,startPos:pos,origX:player.x,origY:player.y});
-                                }}>
-                                {isSel&&<circle cx={player.x} cy={player.y} r={player.size+5} fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="4,3" opacity="0.7"/>}
-                                {/* Ficha limpia — sin aura */}
-                                <circle cx={player.x} cy={player.y} r={player.size} fill={player.color}/>
-                                <circle cx={player.x} cy={player.y} r={player.size} fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="1.5"/>
-                                {/* Número */}
-                                <text x={player.x} y={player.y+(player.name?-3:0)} textAnchor="middle" dominantBaseline="middle"
-                                  fill={textColor} fontSize={player.size*0.7} fontWeight="800" fontFamily="Inter,sans-serif"
-                                  style={{pointerEvents:'none',letterSpacing:'-0.5px'}}>
-                                  {player.number}
-                                </text>
-                                {/* Nombre debajo de la ficha */}
-                                {player.name&&(
-                                  <text x={player.x} y={player.y+player.size+11} textAnchor="middle"
-                                    fill="white" fontSize="9" fontWeight="600" fontFamily="Inter,sans-serif"
-                                    style={{pointerEvents:'none',textShadow:'0 1px 4px rgba(0,0,0,1)'}}>
-                                    {player.name}
-                                  </text>
-                                )}
-                              </g>
-                            );
+                            return(<g key={player.id} style={{cursor:'move'}}
+                              onPointerDown={e=>{e.stopPropagation();setTbSelectedId(player.id);setEditingPlayer(player.id);const pos=getTbMousePos(e);setTbInteraction({mode:'drag_player',playerId:player.id,startPos:pos,origX:player.x,origY:player.y});}}>
+                              {isSel&&<circle cx={player.x} cy={player.y} r={player.size+5} fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="4,3" opacity="0.7"/>}
+                              <circle cx={player.x} cy={player.y} r={player.size} fill={player.color}/>
+                              <circle cx={player.x} cy={player.y} r={player.size} fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="1.5"/>
+                              <text x={player.x} y={player.y+(player.name?-3:0)} textAnchor="middle" dominantBaseline="middle" fill={textColor} fontSize={player.size*0.7} fontWeight="800" fontFamily="Inter,sans-serif" style={{pointerEvents:'none',letterSpacing:'-0.5px'}}>{player.number}</text>
+                              {player.name&&<text x={player.x} y={player.y+player.size+11} textAnchor="middle" fill="white" fontSize="9" fontWeight="600" fontFamily="Inter,sans-serif" style={{pointerEvents:'none'}}>{player.name}</text>}
+                            </g>);
                           })}
                         </svg>
                       </div>
                       <div className="flex-shrink-0 px-3 py-1.5 border-t border-white/5 text-center" style={{background:'rgba(8,8,16,0.8)'}}>
-                        <span className="text-[9px] text-slate-600">Clic en ficha para editar · Arrastrá para mover · Clic derecho para eliminar figuras · 20Z activa zonas Guardiola</span>
+                        <span className="text-[9px] text-slate-600">Clic en ficha para editar · Arrastrá para mover · Clic derecho para eliminar · 20Z activa zonas Guardiola</span>
                       </div>
                     </div>
                   )}
                 </div>
-
               ):(
-                // ══ SIDEBAR NORMAL ══
                 <>
                   {/* Shape Inspector */}
                   {isShapeSelected&&(
-                    <div className="flex-shrink-0 border-b border-white/5 p-4 space-y-3 max-h-[50vh] overflow-y-auto animate-slide-in"
+                    <div className="flex-shrink-0 border-b border-white/5 p-4 space-y-3 max-h-[55vh] overflow-y-auto animate-slide-in"
                       style={{background:'rgba(245,158,11,0.03)'}}>
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">⚙️ Inspector</span>
+                        <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                          {selectedShape.type==='tactical_spotlight'?'🔦 Spotlight de Jugador':'⚙️ Inspector'}
+                        </span>
                         <button onClick={()=>setSelectedShapeId(null)}
                           className="text-[10px] text-slate-400 hover:text-white px-2 py-0.5 rounded transition"
                           style={{background:'rgba(255,255,255,0.05)'}}>Cerrar</button>
                       </div>
 
-                      {/* Animación */}
-                      <div className="rounded-xl p-3 space-y-2" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">✨ Animación</span>
-                        <div className="grid grid-cols-5 gap-1.5">
-                          {[{v:null,l:'Sin'},{v:'pulse',l:'Pulso'},{v:'fadein',l:'Fade'},{v:'spin',l:'Giro'},{v:'vibrate',l:'Vibra'}].map(({v,l})=>(
-                            <button key={String(v)} type="button"
-                              onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,animation:v}:s))}
-                              className={`py-1.5 rounded-lg text-[10px] font-bold transition ${selectedShape.animation===v?'text-white':'text-slate-500 hover:text-slate-300'}`}
-                              style={selectedShape.animation===v?{background:'linear-gradient(135deg,#d946ef33,#7c3aed33)',border:'1px solid rgba(217,70,239,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                              {l}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                      {/* ✅ INSPECTOR ESPECIAL para Tactical Spotlight */}
+                      {selectedShape.type==='tactical_spotlight'&&(
+                        <div className="space-y-3">
+                          {/* Color */}
+                          <div className="rounded-xl p-3 space-y-2" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Color del Spotlight</span>
+                            <ColorPicker value={selectedShape.color||'#d946ef'}
+                              onChange={c=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,color:c}:s))}/>
+                          </div>
 
-                      {/* Duración */}
-                      {editingContext.type!=='frame'&&(
-                        <div className="rounded-xl p-3 space-y-2" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">⏱ Duración</span>
-                            <span className="text-[10px] font-mono text-slate-600">Inicia: {formatTime(selectedShape.timeStart)}</span>
-                          </div>
-                          <div className="grid grid-cols-5 gap-1.5">
-                            {[1,2,3,5].map(s=>(
-                              <button key={s} type="button"
-                                onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:s}:sh))}
-                                className={`py-1.5 rounded-lg text-xs font-black transition ${selectedShape.duration===s?'text-white':'text-slate-500 hover:text-slate-300'}`}
-                                style={selectedShape.duration===s?{background:'linear-gradient(135deg,#3b82f633,#6366f133)',border:'1px solid rgba(99,102,241,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                                {s}s
-                              </button>
-                            ))}
-                            <button type="button"
-                              onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:'infinite'}:sh))}
-                              className={`py-1.5 rounded-lg text-xs font-black transition ${selectedShape.duration==='infinite'||!selectedShape.duration?'text-white':'text-slate-500 hover:text-slate-300'}`}
-                              style={selectedShape.duration==='infinite'||!selectedShape.duration?{background:'linear-gradient(135deg,#3b82f633,#6366f133)',border:'1px solid rgba(99,102,241,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                              ∞
-                            </button>
-                          </div>
-                          {selectedShape.duration!=='infinite'&&selectedShape.duration!==undefined&&(
-                            <div className="flex items-center justify-between px-2 py-1.5 rounded-lg"
-                              style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                              <span className="text-[10px] text-slate-500 font-bold">Ajuste fino:</span>
-                              <div className="flex items-center gap-1.5">
-                                <button type="button"
-                                  onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:Math.max(0.5,+((parseFloat(sh.duration)||1)-0.5).toFixed(1))}:sh))}
-                                  className="px-2 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white transition"
-                                  style={{background:'rgba(255,255,255,0.06)'}}>−0.5s</button>
-                                <span className="font-mono text-xs font-bold text-blue-400 px-2 py-0.5 rounded"
-                                  style={{background:'rgba(59,130,246,0.1)'}}>{selectedShape.duration}s</span>
-                                <button type="button"
-                                  onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:+((parseFloat(sh.duration)||1)+0.5).toFixed(1)}:sh))}
-                                  className="px-2 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white transition"
-                                  style={{background:'rgba(255,255,255,0.06)'}}>+0.5s</button>
-                              </div>
+                          {/* Keyframes */}
+                          <div className="rounded-xl p-3 space-y-2" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                📍 Puntos de Tracking ({selectedShape.keyframes?.length||0})
+                              </span>
+                              {selectedShape.keyframes?.length>0&&(
+                                <button onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,keyframes:[]}:s))}
+                                  className="text-[9px] text-red-400 hover:text-red-300 font-bold transition">
+                                  Limpiar todos
+                                </button>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Inspector texto */}
-                      {selectedShape.type==='text'&&(
-                        <>
-                          <div>
-                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Contenido</label>
-                            <textarea rows="3" value={selectedShape.text||''}
-                              onChange={e=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,text:e.target.value}:s))}
-                              className="w-full rounded-xl px-3 py-2 text-xs text-white resize-none focus:outline-none"
-                              style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)'}}/>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fuente</label>
-                              <select value={selectedShape.fontFamily||'chalk'}
-                                onChange={e=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,fontFamily:e.target.value}:s))}
-                                className="w-full rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none"
-                                style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)'}}>
-                                <option value="chalk">✏️ Pizarra</option>
-                                <option value="impact">💥 Impacto</option>
-                                <option value="sans">💻 Limpio</option>
-                                <option value="serif">📚 Serif</option>
-                                <option value="mono">📊 Mono</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fondo</label>
-                              <button type="button"
-                                onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,hasBg:!s.hasBg}:s))}
-                                className={`w-full py-1.5 rounded-lg text-xs font-bold transition ${selectedShape.hasBg?'text-amber-300':'text-slate-500 hover:text-slate-300'}`}
-                                style={selectedShape.hasBg?{background:'rgba(245,158,11,0.08)',border:'1px solid rgba(245,158,11,0.25)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                                {selectedShape.hasBg?'🟢 Con Fondo':'⚪ Sin Fondo'}
-                              </button>
-                            </div>
-                          </div>
-                          {[{label:'Color Texto',key:'color',extra:{}},{label:'Color Fondo',key:'bgColor',extra:{hasBg:true}}].map(({label,key,extra})=>(
-                            <div key={key}>
-                              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
-                              <ColorPicker value={selectedShape[key]||'#ffffff'} onChange={c=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,[key]:c,...extra}:s))}/>
-                            </div>
-                          ))}
-                          <div className="space-y-2 rounded-xl p-3" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                            {[{label:'Tamaño letra',key:'fontSize',min:10,max:72,def:18},{label:'Ancho caja',key:'width',min:80,max:900,def:280}].map(({label,key,min,max,def})=>(
-                              <div key={key}>
-                                <div className="flex justify-between text-[10px] text-slate-500 mb-1">
-                                  <span className="font-bold uppercase">{label}</span>
-                                  <span className="font-mono">{selectedShape[key]||def}px</span>
-                                </div>
-                                <input type="range" min={min} max={max} value={selectedShape[key]||def}
-                                  onChange={e=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,[key]:parseInt(e.target.value)}:s))}
-                                  className="w-full h-1 rounded accent-fuchsia-500 bg-white/10"/>
-                              </div>
-                            ))}
-                            {selectedShape.hasBg&&(
-                              <div>
-                                <div className="flex justify-between text-[10px] text-slate-500 mb-1">
-                                  <span className="font-bold uppercase">Opacidad fondo</span>
-                                  <span className="font-mono">{Math.round((selectedShape.bgOpacity??0.85)*100)}%</span>
-                                </div>
-                                <input type="range" min={10} max={100} value={Math.round((selectedShape.bgOpacity??0.85)*100)}
-                                  onChange={e=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,bgOpacity:parseFloat(e.target.value)/100}:s))}
-                                  className="w-full h-1 rounded accent-fuchsia-500 bg-white/10"/>
-                              </div>
+                            {(!selectedShape.keyframes||selectedShape.keyframes.length===0)&&(
+                              <p className="text-[10px] text-slate-600 leading-relaxed">
+                                Seleccioná el spotlight y arrastralo en distintos momentos del video para agregar puntos de tracking.
+                              </p>
                             )}
+                            <div className="space-y-1 max-h-40 overflow-y-auto">
+                              {selectedShape.keyframes?.map((kf,i)=>(
+                                <div key={i} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg"
+                                  style={{background:Math.abs(kf.time-currentTime)<0.15?'rgba(217,70,239,0.12)':'rgba(255,255,255,0.03)',border:Math.abs(kf.time-currentTime)<0.15?'1px solid rgba(217,70,239,0.3)':'1px solid rgba(255,255,255,0.05)'}}>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[9px] font-mono font-bold text-fuchsia-400">{formatTime(kf.time)}</span>
+                                    <span className="text-[9px] text-slate-600 font-mono">x:{Math.round(kf.x)} y:{Math.round(kf.y)}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <button onClick={()=>{if(videoRef.current){videoRef.current.currentTime=kf.time;setCurrentTime(kf.time);}}}
+                                      className="text-[9px] text-blue-400 hover:text-blue-300 font-bold">▶</button>
+                                    <button onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,keyframes:s.keyframes.filter((_,j)=>j!==i)}:s))}
+                                      className="text-[9px] text-red-400 hover:text-red-300 font-bold">✕</button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="flex gap-2">
-                            {[{label:'Negrita',key:'isBold'},{label:'Cursiva',key:'isItalic'},{label:'Sombra',key:'hasShadow'}].map(({label,key})=>(
-                              <button key={key} type="button"
-                                onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,[key]:!s[key]}:s))}
-                                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition ${selectedShape[key]?'text-amber-300':'text-slate-500 hover:text-slate-300'}`}
-                                style={selectedShape[key]?{background:'rgba(245,158,11,0.08)',border:'1px solid rgba(245,158,11,0.25)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                                {label}
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      )}
 
-                      {selectedShape.type!=='text'&&(
-                        <div className="space-y-2">
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Color</label>
-                          <ColorPicker value={selectedShape.color} onChange={c=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,color:c}:s))}/>
-                          {selectedShape.type==='player_clone'&&selectedShape.hasTrail&&(
-                            <button type="button"
-                              onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,trailPoints:[]}:s))}
-                              className="w-full py-1.5 rounded-lg text-[10px] font-bold text-indigo-300 transition"
-                              style={{background:'rgba(99,102,241,0.08)',border:'1px solid rgba(99,102,241,0.2)'}}>
-                              🗑 Limpiar recorrido
-                            </button>
-                          )}
-                          <button
-                            onClick={()=>{setShapes(p=>p.filter(s=>s.id!==selectedShapeId));setSelectedShapeId(null);showToast("Figura eliminada","info");}}
+                          {/* Instrucción de uso */}
+                          <div className="rounded-xl p-3" style={{background:'rgba(234,179,8,0.06)',border:'1px solid rgba(234,179,8,0.15)'}}>
+                            <p className="text-[10px] text-yellow-400 leading-relaxed font-medium">
+                              💡 <strong>Cómo usar el tracking:</strong><br/>
+                              1. Pausá el video donde el jugador está en una posición<br/>
+                              2. Arrastrá el spotlight hasta el jugador<br/>
+                              3. Repetí en distintos momentos del corte<br/>
+                              4. Al reproducir, el efecto seguirá al jugador
+                            </p>
+                          </div>
+
+                          {/* Eliminar */}
+                          <button onClick={()=>{setShapes(p=>p.filter(s=>s.id!==selectedShapeId));setSelectedShapeId(null);showToast("Spotlight eliminado","info");}}
                             className="w-full py-1.5 rounded-lg text-[10px] font-bold text-red-300 transition"
                             style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.18)'}}>
-                            🗑 Eliminar Figura
+                            🗑 Eliminar Spotlight
                           </button>
                         </div>
+                      )}
+
+                      {/* Inspector normal para otros shapes */}
+                      {selectedShape.type!=='tactical_spotlight'&&(
+                        <>
+                          {/* Animación */}
+                          <div className="rounded-xl p-3 space-y-2" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">✨ Animación</span>
+                            <div className="grid grid-cols-5 gap-1.5">
+                              {[{v:null,l:'Sin'},{v:'pulse',l:'Pulso'},{v:'fadein',l:'Fade'},{v:'spin',l:'Giro'},{v:'vibrate',l:'Vibra'}].map(({v,l})=>(
+                                <button key={String(v)} type="button"
+                                  onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,animation:v}:s))}
+                                  className={`py-1.5 rounded-lg text-[10px] font-bold transition ${selectedShape.animation===v?'text-white':'text-slate-500 hover:text-slate-300'}`}
+                                  style={selectedShape.animation===v?{background:'linear-gradient(135deg,#d946ef33,#7c3aed33)',border:'1px solid rgba(217,70,239,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                  {l}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Duración */}
+                          {editingContext.type!=='frame'&&(
+                            <div className="rounded-xl p-3 space-y-2" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                              <div className="flex justify-between items-center">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">⏱ Duración</span>
+                                <span className="text-[10px] font-mono text-slate-600">Inicia: {formatTime(selectedShape.timeStart)}</span>
+                              </div>
+                              <div className="grid grid-cols-5 gap-1.5">
+                                {[1,2,3,5].map(s=>(
+                                  <button key={s} type="button"
+                                    onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:s}:sh))}
+                                    className={`py-1.5 rounded-lg text-xs font-black transition ${selectedShape.duration===s?'text-white':'text-slate-500 hover:text-slate-300'}`}
+                                    style={selectedShape.duration===s?{background:'linear-gradient(135deg,#3b82f633,#6366f133)',border:'1px solid rgba(99,102,241,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                    {s}s
+                                  </button>
+                                ))}
+                                <button type="button"
+                                  onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:'infinite'}:sh))}
+                                  className={`py-1.5 rounded-lg text-xs font-black transition ${selectedShape.duration==='infinite'||!selectedShape.duration?'text-white':'text-slate-500 hover:text-slate-300'}`}
+                                  style={selectedShape.duration==='infinite'||!selectedShape.duration?{background:'linear-gradient(135deg,#3b82f633,#6366f133)',border:'1px solid rgba(99,102,241,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                  ∞
+                                </button>
+                              </div>
+                              {selectedShape.duration!=='infinite'&&selectedShape.duration!==undefined&&(
+                                <div className="flex items-center justify-between px-2 py-1.5 rounded-lg"
+                                  style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                  <span className="text-[10px] text-slate-500 font-bold">Ajuste fino:</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <button type="button" onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:Math.max(0.5,+((parseFloat(sh.duration)||1)-0.5).toFixed(1))}:sh))} className="px-2 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white transition" style={{background:'rgba(255,255,255,0.06)'}}>−0.5s</button>
+                                    <span className="font-mono text-xs font-bold text-blue-400 px-2 py-0.5 rounded" style={{background:'rgba(59,130,246,0.1)'}}>{selectedShape.duration}s</span>
+                                    <button type="button" onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:+((parseFloat(sh.duration)||1)+0.5).toFixed(1)}:sh))} className="px-2 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white transition" style={{background:'rgba(255,255,255,0.06)'}}>+0.5s</button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {selectedShape.type==='text'&&(
+                            <>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Contenido</label>
+                                <textarea rows="3" value={selectedShape.text||''}
+                                  onChange={e=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,text:e.target.value}:s))}
+                                  className="w-full rounded-xl px-3 py-2 text-xs text-white resize-none focus:outline-none"
+                                  style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)'}}/>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fuente</label>
+                                  <select value={selectedShape.fontFamily||'chalk'}
+                                    onChange={e=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,fontFamily:e.target.value}:s))}
+                                    className="w-full rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none"
+                                    style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)'}}>
+                                    <option value="chalk">✏️ Pizarra</option>
+                                    <option value="impact">💥 Impacto</option>
+                                    <option value="sans">💻 Limpio</option>
+                                    <option value="serif">📚 Serif</option>
+                                    <option value="mono">📊 Mono</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fondo</label>
+                                  <button type="button" onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,hasBg:!s.hasBg}:s))}
+                                    className={`w-full py-1.5 rounded-lg text-xs font-bold transition ${selectedShape.hasBg?'text-amber-300':'text-slate-500 hover:text-slate-300'}`}
+                                    style={selectedShape.hasBg?{background:'rgba(245,158,11,0.08)',border:'1px solid rgba(245,158,11,0.25)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                    {selectedShape.hasBg?'🟢 Con Fondo':'⚪ Sin Fondo'}
+                                  </button>
+                                </div>
+                              </div>
+                              {[{label:'Color Texto',key:'color',extra:{}},{label:'Color Fondo',key:'bgColor',extra:{hasBg:true}}].map(({label,key,extra})=>(
+                                <div key={key}>
+                                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
+                                  <ColorPicker value={selectedShape[key]||'#ffffff'} onChange={c=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,[key]:c,...extra}:s))}/>
+                                </div>
+                              ))}
+                              <div className="space-y-2 rounded-xl p-3" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                {[{label:'Tamaño letra',key:'fontSize',min:10,max:72,def:18},{label:'Ancho caja',key:'width',min:80,max:900,def:280}].map(({label,key,min,max,def})=>(
+                                  <div key={key}>
+                                    <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+                                      <span className="font-bold uppercase">{label}</span>
+                                      <span className="font-mono">{selectedShape[key]||def}px</span>
+                                    </div>
+                                    <input type="range" min={min} max={max} value={selectedShape[key]||def}
+                                      onChange={e=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,[key]:parseInt(e.target.value)}:s))}
+                                      className="w-full h-1 rounded accent-fuchsia-500 bg-white/10"/>
+                                  </div>
+                                ))}
+                                {selectedShape.hasBg&&(
+                                  <div>
+                                    <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+                                      <span className="font-bold uppercase">Opacidad fondo</span>
+                                      <span className="font-mono">{Math.round((selectedShape.bgOpacity??0.85)*100)}%</span>
+                                    </div>
+                                    <input type="range" min={10} max={100} value={Math.round((selectedShape.bgOpacity??0.85)*100)}
+                                      onChange={e=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,bgOpacity:parseFloat(e.target.value)/100}:s))}
+                                      className="w-full h-1 rounded accent-fuchsia-500 bg-white/10"/>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                {[{label:'Negrita',key:'isBold'},{label:'Cursiva',key:'isItalic'},{label:'Sombra',key:'hasShadow'}].map(({label,key})=>(
+                                  <button key={key} type="button"
+                                    onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,[key]:!s[key]}:s))}
+                                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition ${selectedShape[key]?'text-amber-300':'text-slate-500 hover:text-slate-300'}`}
+                                    style={selectedShape[key]?{background:'rgba(245,158,11,0.08)',border:'1px solid rgba(245,158,11,0.25)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                    {label}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+
+                          {selectedShape.type!=='text'&&(
+                            <div className="space-y-2">
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Color</label>
+                              <ColorPicker value={selectedShape.color} onChange={c=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,color:c}:s))}/>
+                              {selectedShape.type==='player_clone'&&selectedShape.hasTrail&&(
+                                <button type="button" onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,trailPoints:[]}:s))}
+                                  className="w-full py-1.5 rounded-lg text-[10px] font-bold text-indigo-300 transition"
+                                  style={{background:'rgba(99,102,241,0.08)',border:'1px solid rgba(99,102,241,0.2)'}}>
+                                  🗑 Limpiar recorrido
+                                </button>
+                              )}
+                              <button onClick={()=>{setShapes(p=>p.filter(s=>s.id!==selectedShapeId));setSelectedShapeId(null);showToast("Figura eliminada","info");}}
+                                className="w-full py-1.5 rounded-lg text-[10px] font-bold text-red-300 transition"
+                                style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.18)'}}>
+                                🗑 Eliminar Figura
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
@@ -2240,7 +2629,7 @@
                   <div className="flex-1 overflow-y-auto p-4 space-y-4"
                     style={{scrollbarWidth:'thin',scrollbarColor:'#1e1e2e transparent'}}>
 
-                    {/* ══ TAB: PROYECTOS ══ */}
+                    {/* ══ PROYECTOS ══ */}
                     {activeTab==='projects'&&(
                       <div className="space-y-4 animate-fade-up">
                         <div className="rounded-2xl p-4 space-y-3"
@@ -2275,7 +2664,7 @@
                                     </div>
                                     <p className="text-[10px] text-slate-600 mt-0.5 font-mono">{p.videoName||'Sin video'}</p>
                                   </div>
-                                  <button onClick={()=>deleteProject(p.id,p.name)} className="p-1.5 text-slate-600 hover:text-red-400 transition rounded-lg hover:bg-red-400/8">
+                                  <button onClick={()=>deleteProject(p.id,p.name)} className="p-1.5 text-slate-600 hover:text-red-400 transition rounded-lg">
                                     <Icons.Trash className="w-3.5 h-3.5"/>
                                   </button>
                                 </div>
@@ -2296,7 +2685,7 @@
                       </div>
                     )}
 
-                    {/* ══ TAB: BOTONERA ══ */}
+                    {/* ══ BOTONERA ══ */}
                     {activeTab==='panel'&&(
                       <div className="space-y-3 animate-fade-up">
                         <div className="rounded-xl p-3 text-xs text-slate-500 leading-relaxed"
@@ -2326,7 +2715,7 @@
                       </div>
                     )}
 
-                    {/* ══ TAB: UNIFICAR ══ */}
+                    {/* ══ UNIFICAR ══ */}
                     {activeTab==='list'&&(
                       <div className="space-y-4 animate-fade-up">
                         <div className="flex justify-between items-center">
@@ -2336,7 +2725,6 @@
                             {selectedCutsForMerge.length} sel.
                           </span>
                         </div>
-
                         <div className="rounded-2xl p-4 space-y-3"
                           style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
                           <div className="flex justify-between items-center pb-2 border-b border-white/5">
@@ -2347,14 +2735,13 @@
                               <button onClick={handleDeselectAllCuts} className="text-slate-500 hover:text-slate-400 font-bold transition">Ninguno</button>
                             </div>
                           </div>
-
                           {selectedCutsForMerge.length>0&&(
                             <div className="space-y-1 max-h-44 overflow-y-auto pr-1">
                               {selectedCutsForMerge.map((id,index)=>{
                                 const cc=cuts.find(c=>c.id===id),cf=frames.find(f=>f.id===id);
                                 if(!cc&&!cf)return null;
                                 const isF=!!cf;
-                                const title=cc?cc.categoryName:(cf.isImported?`📷 ${cf.fileName||'Foto importada'}`:`📸 Foto @ ${formatTime(cf.time)}`);
+                                const title=cc?cc.categoryName:(cf.isImported?`📷 ${cf.fileName||'Foto'}`:`📸 Foto @ ${formatTime(cf.time)}`);
                                 const col=cc?cc.color:'#d946ef';
                                 return(
                                   <div key={id} className="flex items-center justify-between px-3 py-2 rounded-lg"
@@ -2382,7 +2769,6 @@
                               })}
                             </div>
                           )}
-
                           <div className="grid grid-cols-2 gap-2 pt-1">
                             <button onClick={playCompilationInApp} disabled={!selectedCutsForMerge.length||!videoSrc}
                               className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white transition disabled:opacity-30"
@@ -2427,6 +2813,13 @@
                                               🎨 {cut.shapes.length}
                                             </span>
                                           )}
+                                          {/* ✅ Badge si tiene spotlights */}
+                                          {cut.shapes?.some(s=>s.type==='tactical_spotlight')&&(
+                                            <span className="text-[9px] font-bold text-yellow-400 px-1.5 py-0.5 rounded"
+                                              style={{background:'rgba(234,179,8,0.1)'}}>
+                                              🔦 {cut.shapes.filter(s=>s.type==='tactical_spotlight').length}
+                                            </span>
+                                          )}
                                         </div>
                                         <div className="flex items-center gap-1">
                                           <button onClick={()=>startEditCutContext(cut)}
@@ -2447,7 +2840,6 @@
                                           </button>
                                         </div>
                                       </div>
-                                      {/* ✅ Edición tiempo inicio/fin */}
                                       <div className="flex items-center gap-2 rounded-lg px-2.5 py-1.5"
                                         style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.05)'}}>
                                         <span className="text-[9px] text-slate-600 font-bold uppercase">In</span>
@@ -2477,7 +2869,7 @@
                       </div>
                     )}
 
-                    {/* ══ TAB: FOTOS ══ */}
+                    {/* ══ FOTOS ══ */}
                     {activeTab==='frames'&&(
                       <div className="space-y-4 animate-fade-up">
                         <div className="flex items-center justify-between">
@@ -2495,13 +2887,12 @@
                             </button>
                           </div>
                         </div>
-
                         {!frames.length?(
                           <div className="text-center py-12 rounded-2xl"
                             style={{background:'rgba(255,255,255,0.01)',border:'1px solid rgba(255,255,255,0.04)'}}>
                             <Icons.Image className="w-8 h-8 mx-auto mb-3 text-slate-700"/>
                             <h3 className="font-bold text-sm text-slate-600 mb-1">Sin fotos todavía</h3>
-                            <p className="text-xs text-slate-700">Capturá fotogramas o importá imágenes desde tu computadora</p>
+                            <p className="text-xs text-slate-700">Capturá fotogramas o importá imágenes</p>
                           </div>
                         ):(
                           <div className="grid grid-cols-2 gap-3">
@@ -2559,7 +2950,7 @@
                       </div>
                     )}
 
-                    {/* ══ TAB: AJUSTES ══ */}
+                    {/* ══ AJUSTES ══ */}
                     {activeTab==='config'&&(
                       <div className="space-y-5 animate-fade-up">
                         <div className="rounded-2xl p-4 space-y-3"
@@ -2620,7 +3011,7 @@
                                     onChange={e=>handleCategoryChange(cat.id,'name',e.target.value)}
                                     className="font-bold text-xs text-white bg-transparent border-b border-transparent hover:border-white/15 focus:border-fuchsia-500 focus:outline-none w-48 py-0.5 transition"/>
                                   <button onClick={()=>deleteCategory(cat.id)}
-                                    className="p-1.5 text-slate-600 hover:text-red-400 transition rounded-lg hover:bg-red-400/8">
+                                    className="p-1.5 text-slate-600 hover:text-red-400 transition rounded-lg">
                                     <Icons.Trash className="w-3.5 h-3.5"/>
                                   </button>
                                 </div>
@@ -2659,4 +3050,5 @@
   </script>
 </body>
 </html>
+      
       
