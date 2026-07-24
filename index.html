@@ -15,7 +15,7 @@
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #d946ef; }
+    ::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
     @keyframes shapePulse {
       0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px currentColor); }
@@ -37,14 +37,13 @@
       to   { opacity: 1; transform: translateY(0); }
     }
     @keyframes glow {
-      0%, 100% { box-shadow: 0 0 8px #d946ef44; }
-      50%       { box-shadow: 0 0 24px #d946ef88, 0 0 48px #d946ef22; }
+      0%, 100% { box-shadow: 0 0 8px #2563eb44; }
+      50%       { box-shadow: 0 0 24px #2563eb88, 0 0 48px #2563eb22; }
     }
     @keyframes slideInRight {
       from { opacity: 0; transform: translateX(20px); }
       to   { opacity: 1; transform: translateX(0); }
     }
-    /* ✅ ANIMACIÓN ANILLO TÁCTICO — rota el patrón dashed */
     @keyframes spotlightRingRotate {
       from { stroke-dashoffset: 0; }
       to   { stroke-dashoffset: -60; }
@@ -79,21 +78,22 @@
       border: 1px solid rgba(255,255,255,0.06);
     }
     .btn-premium {
-      background: linear-gradient(135deg,#d946ef,#a855f7);
+      background: linear-gradient(135deg,#2563eb,#1d4ed8);
       transition: all 0.2s ease;
     }
     .btn-premium:hover {
-      background: linear-gradient(135deg,#e879f9,#c084fc);
+      background: linear-gradient(135deg,#3b82f6,#2563eb);
       transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(217,70,239,0.4);
+      box-shadow: 0 8px 24px rgba(37,99,235,0.4);
     }
     .btn-premium:active { transform: translateY(0); }
+
     .context-menu {
       position: fixed; z-index: 9999;
       background: #1e1e2e; border: 1px solid #334155;
       border-radius: 10px; padding: 4px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-      min-width: 180px;
+      min-width: 220px; max-width: 280px;
       animation: fadeInUp 0.15s ease-out forwards;
     }
     .context-menu-item {
@@ -102,10 +102,10 @@
       font-size: 12px; cursor: pointer; color: #e2e8f0;
       transition: background 0.15s;
     }
-    .context-menu-item:hover       { background: rgba(217,70,239,0.15); color: #e879f9; }
+    .context-menu-item:hover       { background: rgba(37,99,235,0.15); color: #60a5fa; }
     .context-menu-item.danger:hover{ background: rgba(239,68,68,0.15);  color: #f87171; }
     .zone-cell { transition: fill 0.2s ease; cursor: pointer; }
-    .zone-cell:hover { fill: rgba(217,70,239,0.15) !important; }
+    .zone-cell:hover { fill: rgba(37,99,235,0.15) !important; }
   </style>
 </head>
 <body>
@@ -113,7 +113,6 @@
   <script type="text/babel">
     const { useState, useRef, useEffect, useCallback } = React;
 
-    // ── PALETA ──
     const COLOR_PALETTE = [
       { name:'Rojo Fuego',   hex:'#ef4444' },
       { name:'Rojo Oscuro',  hex:'#991b1b' },
@@ -126,6 +125,7 @@
       { name:'Cian',         hex:'#06b6d4' },
       { name:'Azul Cielo',   hex:'#38bdf8' },
       { name:'Azul',         hex:'#3b82f6' },
+      { name:'Azul Rey',     hex:'#2563eb' },
       { name:'Azul Marino',  hex:'#1e3a8a' },
       { name:'Índigo',       hex:'#6366f1' },
       { name:'Morado',       hex:'#8b5cf6' },
@@ -155,15 +155,14 @@
       '3-4-3':   { positions:[{x:8,y:50},{x:22,y:25},{x:22,y:50},{x:22,y:75},{x:42,y:15},{x:42,y:40},{x:42,y:60},{x:42,y:85},{x:72,y:20},{x:72,y:50},{x:72,y:80}] },
     };
 
-    const PEP_ZONES = (() => {
+    const PEP_ZONES = (()=>{
       const zones=[],cols=5,rows=4,w=100/cols,h=100/rows;
       const names=['Z1','Z2','Z3','Z4','Z5','Z6','Z7','Z8','Z9','Z10','Z11','Z12','Z13','Z14','Z15','Z16','Z17','Z18','Z19','Z20'];
       for(let r=0;r<rows;r++) for(let c=0;c<cols;c++)
-        zones.push({id:`zone-${r*cols+c}`,name:names[r*cols+c],x:c*w,y:r*h,w,h,active:false,color:'#d946ef'});
+        zones.push({id:`zone-${r*cols+c}`,name:names[r*cols+c],x:c*w,y:r*h,w,h,active:false,color:'#2563eb'});
       return zones;
     })();
 
-    // ── UTILIDADES ──
     function canvasRoundRect(ctx,x,y,w,h,r){
       ctx.beginPath();
       ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
@@ -179,25 +178,20 @@
       return (0.299*r+0.587*g+0.114*b)/255>0.5?'#0f172a':'#ffffff';
     }
 
-    // ✅ INTERPOLACIÓN DE KEYFRAMES para tracking del spotlight
-    function getSpotlightPos(shape, time) {
-      const kf = shape.keyframes;
-      if (!kf || kf.length === 0) return { x: shape.initX||0, y: shape.initY||0 };
-      if (kf.length === 1) return { x: kf[0].x, y: kf[0].y };
-      if (time <= kf[0].time) return { x: kf[0].x, y: kf[0].y };
-      if (time >= kf[kf.length-1].time) return { x: kf[kf.length-1].x, y: kf[kf.length-1].y };
-      for (let i = 0; i < kf.length-1; i++) {
-        if (time >= kf[i].time && time <= kf[i+1].time) {
-          const t = (time - kf[i].time) / (kf[i+1].time - kf[i].time);
-          // Interpolación con ease in-out para movimiento suave
-          const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
-          return {
-            x: kf[i].x + (kf[i+1].x - kf[i].x) * ease,
-            y: kf[i].y + (kf[i+1].y - kf[i].y) * ease,
-          };
+    function getSpotlightPos(shape,time){
+      const kf=shape.keyframes;
+      if(!kf||kf.length===0)return{x:shape.initX||0,y:shape.initY||0};
+      if(kf.length===1)return{x:kf[0].x,y:kf[0].y};
+      if(time<=kf[0].time)return{x:kf[0].x,y:kf[0].y};
+      if(time>=kf[kf.length-1].time)return{x:kf[kf.length-1].x,y:kf[kf.length-1].y};
+      for(let i=0;i<kf.length-1;i++){
+        if(time>=kf[i].time&&time<=kf[i+1].time){
+          const t=(time-kf[i].time)/(kf[i+1].time-kf[i].time);
+          const ease=t<0.5?2*t*t:-1+(4-2*t)*t;
+          return{x:kf[i].x+(kf[i+1].x-kf[i].x)*ease,y:kf[i].y+(kf[i+1].y-kf[i].y)*ease};
         }
       }
-      return { x: kf[kf.length-1].x, y: kf[kf.length-1].y };
+      return{x:kf[kf.length-1].x,y:kf[kf.length-1].y};
     }
 
     function generatePlayers(formation,homeColor,awayColor){
@@ -207,7 +201,6 @@
       return[...home,...away];
     }
 
-    // ── ICONS ──
     const Icons = {
       Play:        p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
       Pause:       p=><svg {...p} width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>,
@@ -250,7 +243,6 @@
       ImgImport:   p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><line x1="12" y1="1" x2="12" y2="5"/><polyline points="9 4 12 1 15 4"/></svg>,
       Zap:         p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
       X:           p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-      // ✅ NUEVO — Icono para la herramienta Tactical Spotlight
       TacticalSpot:p=><svg {...p} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <ellipse cx="12" cy="20" rx="6" ry="2"/>
         <path d="M8 20 L10 8 M16 20 L14 8" opacity="0.5"/>
@@ -259,7 +251,6 @@
       </svg>,
     };
 
-    // ── COLOR PICKER ──
     function ColorPicker({ value, onChange }) {
       return (
         <div className="flex flex-wrap gap-1 items-center">
@@ -269,7 +260,7 @@
               className={`w-5 h-5 rounded-full border-2 transition-all duration-150 ${value===c.hex?'border-white scale-125 shadow-lg':'border-transparent hover:scale-110 hover:border-white/50'}`}/>
           ))}
           <label title="Color personalizado"
-            className="relative w-6 h-6 rounded-full overflow-hidden border-2 border-dashed border-gray-500 hover:border-fuchsia-400 cursor-pointer transition-all"
+            className="relative w-6 h-6 rounded-full overflow-hidden border-2 border-dashed border-gray-500 hover:border-blue-400 cursor-pointer transition-all"
             style={{background:'conic-gradient(red,yellow,lime,cyan,blue,magenta,red)'}}>
             <input type="color" value={value} onChange={e=>onChange(e.target.value)}
               className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"/>
@@ -278,7 +269,6 @@
       );
     }
 
-    // ── CONTEXT MENU ──
     function ContextMenu({ x, y, onDelete, onAnimate, onClose, hasAnimation }) {
       useEffect(()=>{
         const h=()=>onClose();
@@ -327,7 +317,7 @@
       const [exportProgress,    setExportProgress]     =useState(0);
       const [exportingName,     setExportingName]      =useState('');
       const [newCatName,        setNewCatName]         =useState('');
-      const [newCatColor,       setNewCatColor]        =useState('#d946ef');
+      const [newCatColor,       setNewCatColor]        =useState('#2563eb');
       const [newCatLead,        setNewCatLead]         =useState(5);
       const [newCatLag,         setNewCatLag]          =useState(20);
       const [newCatShortcut,    setNewCatShortcut]     =useState('');
@@ -336,7 +326,6 @@
       const [showControls,      setShowControls]       =useState(true);
       const controlsTimerRef=useRef(null);
 
-      // Drawing
       const [drawTool,        setDrawTool]        =useState('cursor');
       const [drawColor,       setDrawColor]       =useState('#ef4444');
       const [shapes,          setShapes]          =useState([]);
@@ -346,17 +335,13 @@
       const [cloneTrailActive,setCloneTrailActive]=useState(false);
       const [contextMenu,     setContextMenu]     =useState(null);
 
-      // Foco
       const [focusTool,       setFocusTool]       =useState(null);
       const [focusShape,      setFocusShape]      =useState(null);
       const [isDraggingFocus, setIsDraggingFocus] =useState(false);
       const [focusDragOffset, setFocusDragOffset] =useState({x:0,y:0});
       const [zoomLevel,       setZoomLevel]       =useState(2);
+      const [spotlightColor,  setSpotlightColor]  =useState('#2563eb');
 
-      // ✅ TACTICAL SPOTLIGHT state
-      const [spotlightColor,  setSpotlightColor]  =useState('#d946ef');
-
-      // Pizarra táctica
       const [showTacticBoard,  setShowTacticBoard]  =useState(false);
       const [tbFormation,      setTbFormation]      =useState('4-3-3');
       const [tbPlayers,        setTbPlayers]        =useState([]);
@@ -372,7 +357,6 @@
       const [tbFormationChosen,setTbFormationChosen]=useState(false);
       const [tbZones,          setTbZones]          =useState(PEP_ZONES);
       const [tbShowZones,      setTbShowZones]      =useState(false);
-      const [editingPlayer,    setEditingPlayer]    =useState(null);
       const [tbContextMenu,    setTbContextMenu]    =useState(null);
 
       const svgRef             =useRef(null);
@@ -608,11 +592,11 @@
         if(type==='focus_focusbox')return(
           <g key={id} style={{cursor:cur}} onPointerDown={onPD}>
             <rect x="0" y="0" width={vw} height={vh} fill="rgba(0,0,0,0.55)"/>
-            <rect x={x-hw} y={y-hh} width={hw*2} height={hh*2} fill="rgba(217,70,239,0.06)" stroke="#d946ef" strokeWidth="2.5"/>
-            <line x1={x-hw} y1={y} x2={x+hw} y2={y} stroke="#d946ef" strokeWidth="1" opacity="0.4"/>
-            <line x1={x} y1={y-hh} x2={x} y2={y+hh} stroke="#d946ef" strokeWidth="1" opacity="0.4"/>
-            {[[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0]].map(([sx,sy],i)=><circle key={i} cx={x+sx*hw} cy={y+sy*hh} r="4" fill="white" stroke="#d946ef" strokeWidth="1.5"/>)}
-            <rect x={x-hw} y={y-hh-26} width={Math.max(120,hw*2)} height="22" rx="5" fill="rgba(217,70,239,0.9)"/>
+            <rect x={x-hw} y={y-hh} width={hw*2} height={hh*2} fill="rgba(37,99,235,0.06)" stroke="#2563eb" strokeWidth="2.5"/>
+            <line x1={x-hw} y1={y} x2={x+hw} y2={y} stroke="#2563eb" strokeWidth="1" opacity="0.4"/>
+            <line x1={x} y1={y-hh} x2={x} y2={y+hh} stroke="#2563eb" strokeWidth="1" opacity="0.4"/>
+            {[[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0]].map(([sx,sy],i)=><circle key={i} cx={x+sx*hw} cy={y+sy*hh} r="4" fill="white" stroke="#2563eb" strokeWidth="1.5"/>)}
+            <rect x={x-hw} y={y-hh-26} width={Math.max(120,hw*2)} height="22" rx="5" fill="rgba(37,99,235,0.9)"/>
             <text x={x} y={y-hh-11} textAnchor="middle" fill="white" fontSize="11" fontWeight="700" fontFamily="Inter,sans-serif">FOCO SEGUIDOR</text>
           </g>
         );
@@ -624,37 +608,21 @@
         return<>{fs.map(f=>renderSingleFocus(f,f.id===selectedShapeId))}</>;
       };
 
-      // ────────────────────────────────────────────
-      //  TACTICAL SPOTLIGHT — renderizado SVG
-      //  Tres capas: cono (detrás) → jugador → anillo (delante)
-      // ────────────────────────────────────────────
-
-      // Calcula geometría del spotlight a partir de posición interpolada
+      // ── TACTICAL SPOTLIGHT ──
       const getSpotlightGeometry=(shape,pos)=>{
-        const w=shape.spotWidth||80;
-        const h=shape.spotHeight||160;
-        const cx=pos.x;
-        const cy=pos.y;
-        const feetX=cx;
-        const feetY=cy+h*0.5;
-        const topY=cy-h*1.5;
-        return{cx,cy,feetX,feetY,topY,w,h};
+        const w=shape.spotWidth||80,h=shape.spotHeight||160;
+        return{cx:pos.x,cy:pos.y,feetX:pos.x,feetY:pos.y+h*0.5,topY:pos.y-h*1.5,w,h};
       };
 
-      // ── CONO DE LUZ (se renderiza DETRÁS del jugador) ──
       const renderSpotlightCone=(shape)=>{
         if(!isShapeVisible(shape))return null;
         const pos=getSpotlightPos(shape,currentTime);
         const{cx,feetX,feetY,topY,w}=getSpotlightGeometry(shape,pos);
-        const color=shape.color||'#d946ef';
+        const color=shape.color||'#2563eb';
         const gradId=`sg-cone-${shape.id}`;
         const isSel=selectedShapeId===shape.id;
-
-        // Puntos del trapecio cónico
-        const topW=w*0.10;
-        const botW=w*0.85;
+        const topW=w*0.10,botW=w*0.85;
         const pts=`${feetX-topW/2},${topY} ${feetX+topW/2},${topY} ${feetX+botW/2},${feetY} ${feetX-botW/2},${feetY}`;
-
         return(
           <g key={`cone-${shape.id}`} style={{pointerEvents:'none'}}>
             <defs>
@@ -664,50 +632,31 @@
                 <stop offset="100%" stopColor={color} stopOpacity="0.32"/>
               </linearGradient>
             </defs>
-            <polygon
-              points={pts}
-              fill={`url(#${gradId})`}
-              className={isSel?'spotlight-cone-anim':''}
-              style={{mixBlendMode:'screen'}}
-            />
+            <polygon points={pts} fill={`url(#${gradId})`}
+              className={isSel?'spotlight-cone-anim':''} style={{mixBlendMode:'screen'}}/>
           </g>
         );
       };
 
-      // ── ANILLO ELÍPTICO (se renderiza DELANTE del jugador) ──
       const renderSpotlightRing=(shape)=>{
         if(!isShapeVisible(shape))return null;
         const pos=getSpotlightPos(shape,currentTime);
         const{cx,feetX,feetY,w,h}=getSpotlightGeometry(shape,pos);
-        const color=shape.color||'#d946ef';
+        const color=shape.color||'#2563eb';
         const isSel=selectedShapeId===shape.id;
         const gradId=`sg-ring-${shape.id}`;
-
-        const rx=w*0.55;
-        const ry=rx*0.22;
-        const rxInner=rx*0.72;
-        const ryInner=ry*0.72;
-
-        // Handle de arrastre — solo visible cuando está seleccionado
+        const rx=w*0.55,ry=rx*0.22,rxInner=rx*0.72,ryInner=ry*0.72;
         const onPD=e=>{
           if(drawTool!=='cursor')return;
           e.stopPropagation();
           const mp=getMousePos(e);
-          setInteraction({
-            mode:'drag_spotlight',
-            shapeId:shape.id,
-            startPos:mp,
-            origPos:{x:pos.x,y:pos.y},
-          });
+          setInteraction({mode:'drag_spotlight',shapeId:shape.id,startPos:mp,origPos:{x:pos.x,y:pos.y}});
           setSelectedShapeId(shape.id);
         };
-
         return(
-          <g key={`ring-${shape.id}`}
-            onPointerDown={onPD}
+          <g key={`ring-${shape.id}`} onPointerDown={onPD}
             onContextMenu={e=>handleShapeContextMenu(e,shape.id)}
             style={{cursor:drawTool==='cursor'?'move':'default'}}>
-
             <defs>
               <radialGradient id={gradId} cx="50%" cy="50%" r="50%">
                 <stop offset="0%"   stopColor={color} stopOpacity="0.18"/>
@@ -715,56 +664,26 @@
                 <stop offset="100%" stopColor={color} stopOpacity="0"/>
               </radialGradient>
             </defs>
-
-            {/* Relleno suave interior */}
-            <ellipse cx={feetX} cy={feetY} rx={rx*0.9} ry={ry*0.9}
-              fill={`url(#${gradId})`}/>
-
-            {/* Anillo exterior — línea dashed rotante */}
-            <ellipse cx={feetX} cy={feetY} rx={rx} ry={ry}
-              fill="none"
-              stroke={color}
-              strokeWidth="2.5"
-              strokeOpacity="0.9"
-              strokeDasharray="10,5"
-              className="spotlight-ring-anim"/>
-
-            {/* Anillo interior más tenue */}
-            <ellipse cx={feetX} cy={feetY} rx={rxInner} ry={ryInner}
-              fill="none"
-              stroke={color}
-              strokeWidth="1.2"
-              strokeOpacity="0.4"
-              strokeDasharray="6,8"
-              className="spotlight-ring-anim"
+            <ellipse cx={feetX} cy={feetY} rx={rx*0.9} ry={ry*0.9} fill={`url(#${gradId})`}/>
+            <ellipse cx={feetX} cy={feetY} rx={rx} ry={ry} fill="none" stroke={color}
+              strokeWidth="2.5" strokeOpacity="0.9" strokeDasharray="10,5" className="spotlight-ring-anim"/>
+            <ellipse cx={feetX} cy={feetY} rx={rxInner} ry={ryInner} fill="none" stroke={color}
+              strokeWidth="1.2" strokeOpacity="0.4" strokeDasharray="6,8" className="spotlight-ring-anim"
               style={{animationDirection:'reverse',animationDuration:'4s'}}/>
-
-            {/* Punto central en los pies */}
-            <ellipse cx={feetX} cy={feetY} rx={rx*0.15} ry={ry*0.5}
-              fill={color} opacity="0.5"
+            <ellipse cx={feetX} cy={feetY} rx={rx*0.15} ry={ry*0.5} fill={color} opacity="0.5"
               className={isSel?'spotlight-pulse-anim':''}/>
-
-            {/* Borde de selección */}
             {isSel&&(
               <>
-                <ellipse cx={feetX} cy={feetY} rx={rx+8} ry={ry+4}
-                  fill="none" stroke="rgba(255,255,255,0.4)"
-                  strokeWidth="1" strokeDasharray="4,4"/>
-                {/* Handle en el centro para arrastrar */}
-                <circle cx={cx} cy={pos.y} r="8"
-                  fill={color} opacity="0.85"
-                  stroke="white" strokeWidth="2"
-                  style={{cursor:'move'}}/>
-                {/* Indicador de tiempo del keyframe más cercano */}
+                <ellipse cx={feetX} cy={feetY} rx={rx+8} ry={ry+4} fill="none"
+                  stroke="rgba(255,255,255,0.4)" strokeWidth="1" strokeDasharray="4,4"/>
+                <circle cx={cx} cy={pos.y} r="8" fill={color} opacity="0.85" stroke="white" strokeWidth="2" style={{cursor:'move'}}/>
                 {shape.keyframes?.length>0&&(()=>{
                   const nearest=shape.keyframes.reduce((a,b)=>Math.abs(b.time-currentTime)<Math.abs(a.time-currentTime)?b:a);
                   const isKF=Math.abs(nearest.time-currentTime)<0.15;
                   return isKF?(
                     <g>
-                      <rect x={cx-30} y={pos.y-h*0.5-32} width="60" height="18" rx="5"
-                        fill={color} opacity="0.9"/>
-                      <text x={cx} y={pos.y-h*0.5-20} textAnchor="middle"
-                        fill="white" fontSize="10" fontWeight="700" fontFamily="Inter,sans-serif">
+                      <rect x={cx-30} y={pos.y-h*0.5-32} width="60" height="18" rx="5" fill={color} opacity="0.9"/>
+                      <text x={cx} y={pos.y-h*0.5-20} textAnchor="middle" fill="white" fontSize="10" fontWeight="700" fontFamily="Inter,sans-serif">
                         KF {formatTime(nearest.time)}
                       </text>
                     </g>
@@ -784,34 +703,18 @@
         setContextMenu({x:e.clientX,y:e.clientY,shapeId,hasAnimation:!!shape?.animation});
       };
 
-      // ── POINTER HANDLERS PRINCIPALES ──
+      // ── POINTER HANDLERS ──
       const handlePointerDown=e=>{
         setContextMenu(null);
         if(isPlaying||isPlayCompActive)return;
         if(focusTool){handleFocusPointerDown(e);return;}
-
-        // ✅ CREAR TACTICAL SPOTLIGHT — arrastrar sobre el jugador
         if(drawTool==='tactical_spotlight'){
           const pos=getMousePos(e);
-          const ns={
-            id:'shape-'+Date.now(),
-            type:'tactical_spotlight',
-            color:spotlightColor,
-            startX:pos.x,startY:pos.y,
-            currentX:pos.x,currentY:pos.y,
-            spotWidth:0,spotHeight:0,
-            timeStart:currentTime,
-            duration:'infinite',
-            animation:null,
-            keyframes:[],
-          };
-          setCurrentShape(ns);setInteraction({mode:'draw'});setSelectedShapeId(null);
-          return;
+          const ns={id:'shape-'+Date.now(),type:'tactical_spotlight',color:spotlightColor,startX:pos.x,startY:pos.y,currentX:pos.x,currentY:pos.y,spotWidth:0,spotHeight:0,timeStart:currentTime,duration:'infinite',animation:null,keyframes:[]};
+          setCurrentShape(ns);setInteraction({mode:'draw'});setSelectedShapeId(null);return;
         }
-
         if(drawTool==='cursor'){
-          if(e.target.tagName==='svg'){selectedShapeId?setSelectedShapeId(null):togglePlay();}
-          return;
+          if(e.target.tagName==='svg'){selectedShapeId?setSelectedShapeId(null):togglePlay();}return;
         }
         const pos=getMousePos(e);
         if(drawTool==='text'){
@@ -830,10 +733,7 @@
         if(drawTool!=='cursor')return;
         e.stopPropagation();
         const shape=shapes.find(s=>s.id===shapeId);
-        if(shape?.type==='tactical_spotlight'){
-          // El spotlight tiene su propio handler en renderSpotlightRing
-          return;
-        }
+        if(shape?.type==='tactical_spotlight')return;
         const pos=getMousePos(e);
         setInteraction({mode:'drag_shape',shapeId,startPos:pos,originalShape:JSON.parse(JSON.stringify(shape))});
         setSelectedShapeId(shapeId);
@@ -859,42 +759,21 @@
       const handlePointerMove=e=>{
         if(focusTool){handleFocusPointerMove(e);return;}
         const pos=getMousePos(e);
-
-        // ✅ MOVER SPOTLIGHT — agrega keyframe al soltar
         if(interaction?.mode==='drag_spotlight'){
-          const dx=pos.x-interaction.startPos.x;
-          const dy=pos.y-interaction.startPos.y;
-          const newX=interaction.origPos.x+dx;
-          const newY=interaction.origPos.y+dy;
+          const dx=pos.x-interaction.startPos.x,dy=pos.y-interaction.startPos.y;
+          const newX=interaction.origPos.x+dx,newY=interaction.origPos.y+dy;
           setShapes(prev=>prev.map(s=>{
             if(s.id!==interaction.shapeId)return s;
-            // Actualizar keyframe más cercano al tiempo actual para preview en tiempo real
             const kf=[...s.keyframes];
             const idx=kf.findIndex(k=>Math.abs(k.time-currentTime)<0.15);
             if(idx>=0){kf[idx]={...kf[idx],x:newX,y:newY};}
-            else{
-              // Insertar nuevo keyframe temporal para preview
-              kf.push({time:currentTime,x:newX,y:newY,temp:true});
-              kf.sort((a,b)=>a.time-b.time);
-            }
+            else{kf.push({time:currentTime,x:newX,y:newY,temp:true});kf.sort((a,b)=>a.time-b.time);}
             return{...s,keyframes:kf};
-          }));
-          return;
+          }));return;
         }
-
         if(interaction?.mode==='draw'&&currentShape){
           let u={...currentShape,currentX:pos.x,currentY:pos.y};
-
-          // ✅ Preview del spotlight mientras se arrastra
-          if(u.type==='tactical_spotlight'){
-            const w=Math.abs(pos.x-u.startX);
-            const h=Math.abs(pos.y-u.startY);
-            u.spotWidth=w;u.spotHeight=h;
-            const cx=(u.startX+pos.x)/2;
-            const cy=(u.startY+pos.y)/2;
-            u.initX=cx;u.initY=cy;
-          }
-
+          if(u.type==='tactical_spotlight'){u.spotWidth=Math.abs(pos.x-u.startX);u.spotHeight=Math.abs(pos.y-u.startY);u.initX=(u.startX+pos.x)/2;u.initY=(u.startY+pos.y)/2;}
           if(u.type==='rect'||u.type==='clone')u.points=[{x:u.startX,y:u.startY},{x:pos.x,y:u.startY},{x:pos.x,y:pos.y},{x:u.startX,y:pos.y}];
           else if(u.type==='arrow_concave'||u.type==='arrow_convex'){const dx=pos.x-u.startX,dy=pos.y-u.startY,len=Math.sqrt(dx*dx+dy*dy);let nx=-dy/(len||1),ny=dx/(len||1);if(u.type==='arrow_concave'){nx=-nx;ny=-ny;}u.points=[{x:u.startX,y:u.startY},{x:(u.startX+pos.x)/2+nx*len*0.25,y:(u.startY+pos.y)/2+ny*len*0.25},{x:pos.x,y:pos.y}];}
           else if(u.type==='freehand')u.points=[...u.points,pos];
@@ -923,48 +802,26 @@
 
       const handlePointerUp=e=>{
         if(focusTool){handleFocusPointerUp();return;}
-
-        // ✅ SOLTAR SPOTLIGHT — guardar keyframe definitivo
         if(interaction?.mode==='drag_spotlight'){
           setShapes(prev=>prev.map(s=>{
             if(s.id!==interaction.shapeId)return s;
-            // Limpiar flags temp y ordenar keyframes
-            const kf=s.keyframes
-              .map(k=>({...k,temp:undefined}))
-              .filter((k,i,arr)=>arr.findIndex(a=>Math.abs(a.time-k.time)<0.05)===i)
-              .sort((a,b)=>a.time-b.time);
+            const kf=s.keyframes.map(k=>({...k,temp:undefined})).filter((k,i,arr)=>arr.findIndex(a=>Math.abs(a.time-k.time)<0.05)===i).sort((a,b)=>a.time-b.time);
             return{...s,keyframes:kf};
           }));
-          showToast("✓ Keyframe de tracking guardado","success");
-          setInteraction(null);
-          return;
+          showToast("✓ Keyframe guardado","success");
+          setInteraction(null);return;
         }
-
         if(interaction?.mode==='draw'&&currentShape){
-          // ✅ FINALIZAR SPOTLIGHT — calcular dimensiones y primer keyframe
           if(currentShape.type==='tactical_spotlight'){
-            const x=Math.min(currentShape.startX,currentShape.currentX);
-            const y=Math.min(currentShape.startY,currentShape.currentY);
-            const w=Math.abs(currentShape.currentX-currentShape.startX);
-            const h=Math.abs(currentShape.currentY-currentShape.startY);
-            if(w<20||h<20){showToast("Área muy pequeña para el spotlight","warning");setCurrentShape(null);setInteraction(null);return;}
+            const x=Math.min(currentShape.startX,currentShape.currentX),y=Math.min(currentShape.startY,currentShape.currentY);
+            const w=Math.abs(currentShape.currentX-currentShape.startX),h=Math.abs(currentShape.currentY-currentShape.startY);
+            if(w<20||h<20){showToast("Área muy pequeña","warning");setCurrentShape(null);setInteraction(null);return;}
             const cx=x+w/2,cy=y+h/2;
-            const ns={
-              ...currentShape,
-              spotWidth:w,
-              spotHeight:h,
-              initX:cx,
-              initY:cy,
-              keyframes:[{time:currentTime,x:cx,y:cy}],
-            };
-            setShapes(prev=>[...prev,ns]);
-            setSelectedShapeId(ns.id);
-            setDrawTool('cursor');
-            showToast(`✓ Spotlight creado — pausá el video y arrastralo para agregar puntos de tracking`,"success");
-            setCurrentShape(null);setInteraction(null);
-            return;
+            const ns={...currentShape,spotWidth:w,spotHeight:h,initX:cx,initY:cy,keyframes:[{time:currentTime,x:cx,y:cy}]};
+            setShapes(prev=>[...prev,ns]);setSelectedShapeId(ns.id);setDrawTool('cursor');
+            showToast("✓ Spotlight creado — arrastralo para agregar tracking","success");
+            setCurrentShape(null);setInteraction(null);return;
           }
-
           if(currentShape.type==='clone')createPlayerClone(currentShape.startX,currentShape.startY,currentShape.currentX,currentShape.currentY);
           else{setShapes(prev=>[...prev,currentShape]);setSelectedShapeId(currentShape.id);setDrawTool('cursor');}
           setCurrentShape(null);
@@ -989,9 +846,7 @@
         }
       };
 
-      // ── RENDER SVG SHAPES (shapes normales — sin tactical_spotlight) ──
       const renderShape=(shape,isCurrent=false)=>{
-        // Los tactical_spotlight se renderizan por separado en 3 pasadas
         if(shape.type==='tactical_spotlight')return null;
         if(!isCurrent&&!isShapeVisible(shape))return null;
         const isSel=selectedShapeId===shape.id&&!isCurrent;
@@ -1008,7 +863,6 @@
           const x=Math.min(startX,currentX),y=Math.min(startY,currentY),w=Math.abs(currentX-startX),h=Math.abs(currentY-startY);
           el=<g><rect x={x} y={y} width={w} height={h} stroke={color} fill="none" strokeWidth="2" strokeDasharray="6,4"/><text x={x+6} y={y-8} fill={color} fontSize="11" fontWeight="700" fontFamily="Inter,sans-serif">Seleccionando área...</text></g>;
         }else if(type==='tactical_spotlight'&&isCurrent){
-          // Preview mientras se dibuja
           const x=Math.min(startX,currentX),y=Math.min(startY,currentY),w=Math.abs(currentX-startX),h=Math.abs(currentY-startY);
           el=<g>
             <rect x={x} y={y} width={w} height={h} stroke={spotlightColor} fill={`${spotlightColor}11`} strokeWidth="2" strokeDasharray="8,4"/>
@@ -1049,13 +903,13 @@
           if(isSel)handles=[
             <polyline key="g" points={`${p0.x},${p0.y} ${p1.x},${p1.y} ${p2.x},${p2.y}`} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="4,4"/>,
             <circle key="0" cx={p0.x} cy={p0.y} r="6" fill="#1e1e2e" stroke={color} strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,0)} style={{cursor:'pointer'}}/>,
-            <circle key="1" cx={p1.x} cy={p1.y} r="6" fill="#d946ef" stroke="white" strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,1)} style={{cursor:'pointer'}}/>,
+            <circle key="1" cx={p1.x} cy={p1.y} r="6" fill="#2563eb" stroke="white" strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,1)} style={{cursor:'pointer'}}/>,
             <circle key="2" cx={p2.x} cy={p2.y} r="6" fill="#1e1e2e" stroke={color} strokeWidth="2" onPointerDown={e=>handleHandlePointerDown(e,id,2)} style={{cursor:'pointer'}}/>
           ];
         }else if(type==='text'){
           const hexA=shape.hasBg?`${shape.bgColor||'#0f172a'}${Math.round((shape.bgOpacity??0.85)*255).toString(16).padStart(2,'0')}`:'transparent';
           el=<foreignObject x={startX} y={startY} width={shape.width||280} height={shape.height||100} style={{overflow:'visible',pointerEvents:'auto'}}>
-            <div onPointerDown={e=>handleShapePointerDown(e,id)} style={{color:shape.color,backgroundColor:hexA,fontFamily:shape.fontFamily==='chalk'?'"Comic Sans MS","Chalkboard SE",cursive':shape.fontFamily==='impact'?'Impact,Charcoal,sans-serif':shape.fontFamily==='sans'?'Inter,sans-serif':shape.fontFamily==='serif'?'Georgia,serif':'"Courier New",Courier,monospace',fontSize:`${shape.fontSize||16}px`,fontWeight:shape.isBold?'bold':'normal',fontStyle:shape.isItalic?'italic':'normal',textShadow:shape.hasShadow?'0 2px 8px rgba(0,0,0,0.9)':'none',wordBreak:'break-word',lineHeight:'1.45',padding:'8px 14px',borderRadius:'10px',border:isSel?'2px solid #d946ef':'1px solid transparent',cursor:'move',userSelect:'none',...animStyle}}>{shape.text||"Escribe aquí..."}</div>
+            <div onPointerDown={e=>handleShapePointerDown(e,id)} style={{color:shape.color,backgroundColor:hexA,fontFamily:shape.fontFamily==='chalk'?'"Comic Sans MS","Chalkboard SE",cursive':shape.fontFamily==='impact'?'Impact,Charcoal,sans-serif':shape.fontFamily==='sans'?'Inter,sans-serif':shape.fontFamily==='serif'?'Georgia,serif':'"Courier New",Courier,monospace',fontSize:`${shape.fontSize||16}px`,fontWeight:shape.isBold?'bold':'normal',fontStyle:shape.isItalic?'italic':'normal',textShadow:shape.hasShadow?'0 2px 8px rgba(0,0,0,0.9)':'none',wordBreak:'break-word',lineHeight:'1.45',padding:'8px 14px',borderRadius:'10px',border:isSel?'2px solid #2563eb':'1px solid transparent',cursor:'move',userSelect:'none',...animStyle}}>{shape.text||"Escribe aquí..."}</div>
           </foreignObject>;
         }
         return(
@@ -1067,9 +921,7 @@
         );
       };
 
-      // ────────────────────────────────────────────
-      //  PIZARRA TÁCTICA
-      // ────────────────────────────────────────────
+      // ── PIZARRA TÁCTICA ──
       const TB_W=900,TB_H=600;
 
       const getTbMousePos=e=>{
@@ -1089,10 +941,14 @@
       };
 
       const handleTbPointerDown=e=>{
-        setTbContextMenu(null);if(tbTool==='cursor')return;
+        // ✅ Cerrar menú contextual al hacer clic en el SVG
+        setTbContextMenu(null);
+        if(tbTool==='cursor')return;
         const pos=getTbMousePos(e);
-        const dash=tbLineStyle==='dashed'?'10,6':tbLineStyle==='dotted'?'3,5':'none';
-        if(tbTool==='text'){const ns={id:'tb-'+Date.now(),type:'text',color:tbColor,startX:pos.x-120,startY:pos.y-30,text:'Nota táctica...',fontFamily:'chalk',fontSize:14,isBold:true,hasBg:true,bgColor:'#0f172a',bgOpacity:0.8,width:240,height:55,lineStyle:tbLineStyle};setTbShapes(prev=>[...prev,ns]);setTbSelectedId(ns.id);setTbTool('cursor');return;}
+        if(tbTool==='text'){
+          const ns={id:'tb-'+Date.now(),type:'text',color:tbColor,startX:pos.x-120,startY:pos.y-30,text:'Nota táctica...',fontFamily:'chalk',fontSize:14,isBold:true,hasBg:true,bgColor:'#0f172a',bgOpacity:0.8,width:240,height:55,lineStyle:tbLineStyle};
+          setTbShapes(prev=>[...prev,ns]);setTbSelectedId(ns.id);setTbTool('cursor');return;
+        }
         const ns={id:'tb-'+Date.now(),type:tbTool,color:tbColor,lineStyle:tbLineStyle,startX:pos.x,startY:pos.y,currentX:pos.x,currentY:pos.y,points:[{x:pos.x,y:pos.y},{x:pos.x,y:pos.y},{x:pos.x,y:pos.y},{x:pos.x,y:pos.y}]};
         setTbCurrentShape(ns);setTbInteraction({mode:'draw'});setTbSelectedId(null);
       };
@@ -1118,8 +974,19 @@
         setTbInteraction(null);
       };
 
-      const handleTbShapeContextMenu=(e,shapeId)=>{e.preventDefault();e.stopPropagation();setTbContextMenu({x:e.clientX,y:e.clientY,shapeId});};
-      const handleTbShapePointerDown=(e,shapeId)=>{if(tbTool!=='cursor')return;e.stopPropagation();const pos=getTbMousePos(e),shape=tbShapes.find(s=>s.id===shapeId);setTbInteraction({mode:'drag_shape',shapeId,startPos:pos,originalShape:JSON.parse(JSON.stringify(shape))});setTbSelectedId(shapeId);};
+      // ✅ Context menu para shapes de la pizarra (NO para fichas)
+      const handleTbShapeContextMenu=(e,shapeId)=>{
+        e.preventDefault();e.stopPropagation();
+        setTbContextMenu({x:e.clientX,y:e.clientY,type:'shape',shapeId});
+      };
+
+      const handleTbShapePointerDown=(e,shapeId)=>{
+        if(tbTool!=='cursor')return;
+        e.stopPropagation();
+        const pos=getTbMousePos(e),shape=tbShapes.find(s=>s.id===shapeId);
+        setTbInteraction({mode:'drag_shape',shapeId,startPos:pos,originalShape:JSON.parse(JSON.stringify(shape))});
+        setTbSelectedId(shapeId);
+      };
 
       const exportTacticBoard=()=>{
         if(!tbSvgRef.current)return;
@@ -1152,7 +1019,7 @@
         else if(type==='text'){
           const hexA=shape.hasBg?`${shape.bgColor||'#0f172a'}${Math.round((shape.bgOpacity??0.8)*255).toString(16).padStart(2,'0')}`:'transparent';
           el=<foreignObject x={startX} y={startY} width={shape.width||240} height={shape.height||55} style={{overflow:'visible',pointerEvents:'auto'}}>
-            <div onPointerDown={e=>handleTbShapePointerDown(e,id)} style={{color:shape.color,backgroundColor:hexA,fontFamily:'"Comic Sans MS","Chalkboard SE",cursive',fontSize:`${shape.fontSize||14}px`,fontWeight:'bold',padding:'6px 10px',borderRadius:'8px',cursor:'move',userSelect:'none',border:isSel?'2px solid #d946ef':'1px solid transparent'}}>{shape.text}</div>
+            <div onPointerDown={e=>handleTbShapePointerDown(e,id)} style={{color:shape.color,backgroundColor:hexA,fontFamily:'"Comic Sans MS","Chalkboard SE",cursive',fontSize:`${shape.fontSize||14}px`,fontWeight:'bold',padding:'6px 10px',borderRadius:'8px',cursor:'move',userSelect:'none',border:isSel?'2px solid #2563eb':'1px solid transparent'}}>{shape.text}</div>
           </foreignObject>;
         }
         return(
@@ -1164,10 +1031,6 @@
         );
       };
 
-      // ────────────────────────────────────────────
-      //  EXPORTADOR — renderShapesOnExportCanvas
-      //  Con Tactical Spotlight en 3 pasadas
-      // ────────────────────────────────────────────
       const renderShapesOnExportCanvas=(ctx,drawShapes,canvasWidth,canvasHeight,videoWidth,videoHeight,targetTime,isFrameCtx=false,animTime=0)=>{
         const scaleX=canvasWidth/videoWidth;
         const scaleY=canvasHeight/videoHeight;
@@ -1179,43 +1042,32 @@
           return targetTime>=st&&targetTime<=(st+d);
         });
 
-        // ✅ PASADA 1 — Conos de los spotlights (detrás de todo)
+        // ✅ PASADA 1 — Conos de spotlights (detrás)
         visible.filter(s=>s.type==='tactical_spotlight').forEach(shape=>{
           ctx.save();
           const pos=getSpotlightPos(shape,targetTime);
           const w=shape.spotWidth||80,h=shape.spotHeight||160;
           const cx=pos.x*scaleX,cy=pos.y*scaleY;
-          const feetY=cy+h*scaleY*0.5;
-          const topY=cy-h*scaleY*1.5;
-          const topW=w*scaleX*0.10;
-          const botW=w*scaleX*0.85;
-          const feetX=cx;
-          const color=shape.color||'#d946ef';
-
-          // Animación de respiración del cono
+          const feetY=cy+h*scaleY*0.5,topY=cy-h*scaleY*1.5;
+          const feetX=cx,topW=w*scaleX*0.10,botW=w*scaleX*0.85;
+          const color=shape.color||'#2563eb';
           const breathPhase=Math.sin(animTime*1.8)*0.5+0.5;
           const baseOpacity=0.32+breathPhase*0.12;
-
           const grad=ctx.createLinearGradient(feetX,topY,feetX,feetY);
           grad.addColorStop(0,   hexToRgba(color,0));
           grad.addColorStop(0.55,hexToRgba(color,0.10+breathPhase*0.05));
           grad.addColorStop(1,   hexToRgba(color,baseOpacity));
-
           ctx.fillStyle=grad;
           ctx.beginPath();
-          ctx.moveTo(feetX-topW/2,topY);
-          ctx.lineTo(feetX+topW/2,topY);
-          ctx.lineTo(feetX+botW/2,feetY);
-          ctx.lineTo(feetX-botW/2,feetY);
-          ctx.closePath();
-          ctx.fill();
+          ctx.moveTo(feetX-topW/2,topY);ctx.lineTo(feetX+topW/2,topY);
+          ctx.lineTo(feetX+botW/2,feetY);ctx.lineTo(feetX-botW/2,feetY);
+          ctx.closePath();ctx.fill();
           ctx.restore();
         });
 
-        // ✅ PASADA 2 — Shapes normales (flechas, texto, clones, focos, etc.)
+        // ✅ PASADA 2 — Shapes normales
         visible.filter(s=>s.type!=='tactical_spotlight').forEach(shape=>{
           ctx.save();
-
           if(shape.animation){
             switch(shape.animation){
               case'pulse':{const phase=Math.sin(animTime*4)*0.5+0.5;ctx.globalAlpha=0.5+phase*0.5;ctx.shadowColor=shape.color;ctx.shadowBlur=8+phase*16;break;}
@@ -1224,29 +1076,22 @@
               default:break;
             }
           }
-
-          ctx.strokeStyle=shape.color;
-          ctx.fillStyle=shape.color+'22';
-          ctx.lineWidth=3*scaleX;
-          ctx.lineCap='round';
-          ctx.lineJoin='round';
+          ctx.strokeStyle=shape.color;ctx.fillStyle=shape.color+'22';
+          ctx.lineWidth=3*scaleX;ctx.lineCap='round';ctx.lineJoin='round';
 
           if(shape.type==='rect'){
             ctx.beginPath();
             shape.points.forEach((p,i)=>i===0?ctx.moveTo(p.x*scaleX,p.y*scaleY):ctx.lineTo(p.x*scaleX,p.y*scaleY));
             ctx.closePath();ctx.stroke();ctx.fill();
-
           }else if(shape.type==='circle'){
             const cx=((shape.startX+shape.currentX)/2)*scaleX,cy=((shape.startY+shape.currentY)/2)*scaleY;
             const rx=(Math.abs(shape.currentX-shape.startX)/2)*scaleX,ry=(Math.abs(shape.currentY-shape.startY)/2)*scaleY;
             ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,2*Math.PI);ctx.stroke();ctx.fill();
-
           }else if(shape.type==='freehand'){
             if(shape.points.length<2){ctx.restore();return;}
             ctx.beginPath();
             shape.points.forEach((p,i)=>i===0?ctx.moveTo(p.x*scaleX,p.y*scaleY):ctx.lineTo(p.x*scaleX,p.y*scaleY));
             ctx.stroke();
-
           }else if(shape.type==='arrow'){
             const sx=shape.startX*scaleX,sy=shape.startY*scaleY,ex=shape.currentX*scaleX,ey=shape.currentY*scaleY;
             const ang=Math.atan2(ey-sy,ex-sx),hl=18*scaleX;
@@ -1255,7 +1100,6 @@
             ctx.lineTo(ex-hl*Math.cos(ang-Math.PI/6),ey-hl*Math.sin(ang-Math.PI/6));
             ctx.lineTo(ex-hl*Math.cos(ang+Math.PI/6),ey-hl*Math.sin(ang+Math.PI/6));
             ctx.closePath();ctx.fill();
-
           }else if(shape.type==='arrow_concave'||shape.type==='arrow_convex'){
             const[p0,p1,p2]=shape.points;
             const x0=p0.x*scaleX,y0=p0.y*scaleY,x1=p1.x*scaleX,y1=p1.y*scaleY,x2=p2.x*scaleX,y2=p2.y*scaleY;
@@ -1265,18 +1109,15 @@
             ctx.lineTo(x2-hl*Math.cos(ang-Math.PI/6),y2-hl*Math.sin(ang-Math.PI/6));
             ctx.lineTo(x2-hl*Math.cos(ang+Math.PI/6),y2-hl*Math.sin(ang+Math.PI/6));
             ctx.closePath();ctx.fill();
-
           }else if(shape.type==='player_clone'){
             const minX=Math.min(...shape.points.map(p=>p.x))*scaleX,minY=Math.min(...shape.points.map(p=>p.y))*scaleY;
             const maxX=Math.max(...shape.points.map(p=>p.x))*scaleX,maxY=Math.max(...shape.points.map(p=>p.y))*scaleY;
             if(shape.dataUrl){const img=new Image();img.src=shape.dataUrl;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';if(img.complete)ctx.drawImage(img,minX,minY,maxX-minX,maxY-minY);}
             if(shape.hasTrail&&shape.trailPoints?.length>1){ctx.setLineDash([8*scaleX,5*scaleX]);ctx.strokeStyle=shape.color;ctx.lineWidth=2.5*scaleX;ctx.beginPath();shape.trailPoints.forEach((p,i)=>i===0?ctx.moveTo(p.x*scaleX,p.y*scaleY):ctx.lineTo(p.x*scaleX,p.y*scaleY));ctx.stroke();ctx.setLineDash([]);}
-
           }else if(shape.type==='focus_spotlight'){
             const{x,y,radius}=shape,r=(radius||80)*Math.min(scaleX,scaleY),cx=x*scaleX,cy=y*scaleY;
             ctx.fillStyle='rgba(0,0,0,0.75)';ctx.beginPath();ctx.rect(0,0,canvasWidth,canvasHeight);ctx.arc(cx,cy,r,0,Math.PI*2,true);ctx.fill('evenodd');
             ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=2.5*scaleX;ctx.setLineDash([8*scaleX,4*scaleX]);ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
-
           }else if(shape.type==='focus_zoom'){
             const{x,y,w,h,zoomLevel:zl}=shape,hw=(w||160)/2,hh=(h||120)/2;
             ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,canvasWidth,canvasHeight);
@@ -1284,7 +1125,6 @@
             ctx.fillStyle='rgba(0,0,0,0.85)';ctx.fillRect((x-hw)*scaleX,(y+hh+5)*scaleY,hw*2*scaleX,22*scaleY);
             ctx.fillStyle='#f59e0b';ctx.font=`bold ${14*scaleY}px Inter,sans-serif`;ctx.textBaseline='middle';ctx.textAlign='center';
             ctx.fillText(`${zl||2}× ZOOM`,x*scaleX,(y+hh+16)*scaleY);
-
           }else if(shape.type==='focus_tracker'){
             const{x,y,radius}=shape,r=(radius||80)*Math.min(scaleX,scaleY),cx=x*scaleX,cy=y*scaleY;
             ctx.strokeStyle='#10b981';ctx.lineWidth=2*scaleX;ctx.setLineDash([6*scaleX,3*scaleX]);ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
@@ -1294,20 +1134,17 @@
             ctx.beginPath();ctx.moveTo(cx-r-12*scaleX,cy);ctx.lineTo(cx+r+12*scaleX,cy);ctx.stroke();
             ctx.beginPath();ctx.moveTo(cx,cy-r-12*scaleY);ctx.lineTo(cx,cy+r+12*scaleY);ctx.stroke();
             ctx.globalAlpha=1;
-
           }else if(shape.type==='focus_focusbox'){
             const{x,y,w,h}=shape,hw=(w||160)/2,hh=(h||120)/2;
             ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,canvasWidth,canvasHeight);
-            ctx.fillStyle='rgba(217,70,239,0.06)';ctx.fillRect((x-hw)*scaleX,(y-hh)*scaleY,hw*2*scaleX,hh*2*scaleY);
-            ctx.strokeStyle='#d946ef';ctx.lineWidth=2.5*scaleX;ctx.strokeRect((x-hw)*scaleX,(y-hh)*scaleY,hw*2*scaleX,hh*2*scaleY);
-            ctx.fillStyle='rgba(217,70,239,0.9)';ctx.fillRect((x-hw)*scaleX,(y-hh-28)*scaleY,Math.max(140,hw*2)*scaleX,22*scaleY);
+            ctx.fillStyle='rgba(37,99,235,0.06)';ctx.fillRect((x-hw)*scaleX,(y-hh)*scaleY,hw*2*scaleX,hh*2*scaleY);
+            ctx.strokeStyle='#2563eb';ctx.lineWidth=2.5*scaleX;ctx.strokeRect((x-hw)*scaleX,(y-hh)*scaleY,hw*2*scaleX,hh*2*scaleY);
+            ctx.fillStyle='rgba(37,99,235,0.9)';ctx.fillRect((x-hw)*scaleX,(y-hh-28)*scaleY,Math.max(140,hw*2)*scaleX,22*scaleY);
             ctx.fillStyle='white';ctx.font=`bold ${12*scaleY}px Inter,sans-serif`;ctx.textBaseline='middle';ctx.textAlign='center';
             ctx.fillText('FOCO SEGUIDOR',x*scaleX,(y-hh-17)*scaleY);
-
           }else if(shape.type==='text'){
             const tx=shape.startX*scaleX,ty=shape.startY*scaleY;
-            const tw=(shape.width||280)*scaleX;
-            const fSize=(shape.fontSize||18)*scaleY;
+            const tw=(shape.width||280)*scaleX,fSize=(shape.fontSize||18)*scaleY;
             const padX=14*scaleX,padY=10*scaleY,rad=10*scaleX,lh=fSize*1.45,maxW=tw-padX*2;
             const fontMap={chalk:'"Comic Sans MS","Chalkboard SE",cursive',impact:'Impact,Charcoal,sans-serif',sans:'Inter,sans-serif',serif:'Georgia,serif',mono:'"Courier New",Courier,monospace'};
             const fontStr=[shape.isBold?'bold':'',shape.isItalic?'italic':'',`${fSize}px`,fontMap[shape.fontFamily]||fontMap.chalk].filter(Boolean).join(' ');
@@ -1319,8 +1156,7 @@
               words.forEach((word,i)=>{const test=line+word+' ';if(ctx.measureText(test).width>maxW&&i>0){lines.push(line.trimEnd());line=word+' ';}else{line=test;}});
               if(line.trim())lines.push(line.trimEnd());
             });
-            const realTextH=Math.max(1,lines.length)*lh;
-            const realBgH=realTextH+padY*2;
+            const realBgH=Math.max(1,lines.length)*lh+padY*2;
             if(shape.hasBg){
               ctx.fillStyle=shape.bgColor||'#0f172a';ctx.globalAlpha=shape.bgOpacity??0.85;
               if(shape.hasShadow){ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=16*scaleX;ctx.shadowOffsetY=4*scaleY;}
@@ -1333,77 +1169,44 @@
             lines.forEach(line=>{ctx.fillText(line,tx+padX,cy,maxW);cy+=lh;});
             ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
           }
-
           ctx.restore();
         });
 
-        // ✅ PASADA 3 — Anillos de los spotlights (delante de todo)
+        // ✅ PASADA 3 — Anillos de spotlights (delante)
         visible.filter(s=>s.type==='tactical_spotlight').forEach(shape=>{
           ctx.save();
           const pos=getSpotlightPos(shape,targetTime);
           const w=shape.spotWidth||80,h=shape.spotHeight||160;
           const cx=pos.x*scaleX,cy=pos.y*scaleY;
-          const feetX=cx;
-          const feetY=cy+h*scaleY*0.5;
-          const color=shape.color||'#d946ef';
-
-          const rx=w*scaleX*0.55;
-          const ry=rx*0.22;
-
-          // Animación del anillo — rotación del patrón dashed via lineDashOffset
+          const feetX=cx,feetY=cy+h*scaleY*0.5;
+          const color=shape.color||'#2563eb';
+          const rx=w*scaleX*0.55,ry=rx*0.22;
           const dashOffset=-(animTime*35)%60;
-
-          // Relleno suave interior
           const radGrad=ctx.createRadialGradient(feetX,feetY,0,feetX,feetY,rx);
           radGrad.addColorStop(0,   hexToRgba(color,0.18));
           radGrad.addColorStop(0.6, hexToRgba(color,0.08));
           radGrad.addColorStop(1,   hexToRgba(color,0));
           ctx.fillStyle=radGrad;
-          ctx.beginPath();
-          ctx.ellipse(feetX,feetY,rx*0.9,ry*0.9,0,0,Math.PI*2);
-          ctx.fill();
-
-          // Anillo exterior dashed animado
-          ctx.strokeStyle=color;
-          ctx.lineWidth=2.5*scaleX;
-          ctx.globalAlpha=0.92;
-          ctx.setLineDash([10*scaleX,5*scaleX]);
-          ctx.lineDashOffset=dashOffset;
-          ctx.beginPath();
-          ctx.ellipse(feetX,feetY,rx,ry,0,0,Math.PI*2);
-          ctx.stroke();
-
-          // Anillo interior contra-rotante
-          ctx.lineWidth=1.2*scaleX;
-          ctx.globalAlpha=0.4;
-          ctx.setLineDash([6*scaleX,8*scaleX]);
-          ctx.lineDashOffset=-dashOffset*0.7;
-          ctx.beginPath();
-          ctx.ellipse(feetX,feetY,rx*0.72,ry*0.72,0,0,Math.PI*2);
-          ctx.stroke();
-
-          ctx.setLineDash([]);
-          ctx.lineDashOffset=0;
-          ctx.globalAlpha=1;
-
-          // Punto central luminoso
+          ctx.beginPath();ctx.ellipse(feetX,feetY,rx*0.9,ry*0.9,0,0,Math.PI*2);ctx.fill();
+          ctx.strokeStyle=color;ctx.lineWidth=2.5*scaleX;ctx.globalAlpha=0.92;
+          ctx.setLineDash([10*scaleX,5*scaleX]);ctx.lineDashOffset=dashOffset;
+          ctx.beginPath();ctx.ellipse(feetX,feetY,rx,ry,0,0,Math.PI*2);ctx.stroke();
+          ctx.lineWidth=1.2*scaleX;ctx.globalAlpha=0.4;
+          ctx.setLineDash([6*scaleX,8*scaleX]);ctx.lineDashOffset=-dashOffset*0.7;
+          ctx.beginPath();ctx.ellipse(feetX,feetY,rx*0.72,ry*0.72,0,0,Math.PI*2);ctx.stroke();
+          ctx.setLineDash([]);ctx.lineDashOffset=0;ctx.globalAlpha=1;
           const pulsePhase=Math.sin(animTime*3)*0.5+0.5;
-          ctx.fillStyle=color;
-          ctx.globalAlpha=0.4+pulsePhase*0.25;
-          ctx.beginPath();
-          ctx.ellipse(feetX,feetY,rx*0.15,ry*0.5,0,0,Math.PI*2);
-          ctx.fill();
+          ctx.fillStyle=color;ctx.globalAlpha=0.4+pulsePhase*0.25;
+          ctx.beginPath();ctx.ellipse(feetX,feetY,rx*0.15,ry*0.5,0,0,Math.PI*2);ctx.fill();
           ctx.globalAlpha=1;
-
           ctx.restore();
         });
       };
 
-      // ✅ Helper: hex a rgba para canvas gradients
       function hexToRgba(hex,alpha){
         const h=hex.replace('#','');
         const r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);
-        return `rgba(${r},${g},${b},${alpha})`;
+        return`rgba(${r},${g},${b},${alpha})`;
       }
 
       // ── CAPTURE FRAME ──
@@ -1430,7 +1233,6 @@
         if(isPlaying&&shapes.length>0&&!isPlayCompActive&&!selectedCut&&editingContext.type==='global'){setShapes([]);setSelectedShapeId(null);}
       },[isPlaying]);
 
-      // ── CUT CONTEXT HANDLERS ──
       const playCut=cut=>{
         if(!videoRef.current)return;
         setIsPlayCompActive(false);setSelectedCut(cut);setEditingContext({type:'global',id:null});
@@ -1492,7 +1294,7 @@
         if(!videoSrc||!videoRef.current){showToast("Cargá un video primero","warning");return;}
         videoRef.current.pause();setIsPlaying(false);
         const t=videoRef.current.currentTime,dur=videoRef.current.duration||duration;
-        const cat=categories[0]||{id:'g',name:'Análisis',color:'#d946ef',lead:5,lag:15};
+        const cat=categories[0]||{id:'g',name:'Análisis',color:'#2563eb',lead:5,lag:15};
         const start=Math.max(0,t-(parseFloat(cat.lead)||5));
         const end=dur?Math.min(dur,t+(parseFloat(cat.lag)||15)):t+(parseFloat(cat.lag)||15);
         const id=`cut-${Date.now()}-${Math.random().toString(36).substr(2,4)}`;
@@ -1502,7 +1304,6 @@
         showToast("✓ Pizarra guardada como corte");setActiveTab('list');
       };
 
-      // ── EXPORTAR CLIP INDIVIDUAL ──
       const exportVideoClip=async cut=>{
         const video=videoRef.current;if(!video||!videoSrc)return;
         video.pause();setIsPlaying(false);setSelectedCut(null);setIsPlayCompActive(false);
@@ -1548,7 +1349,6 @@
         }catch(err){console.error(err);showToast("Error al exportar","error");setIsExporting(false);}
       };
 
-      // ── EXPORTAR UNIFICADO ──
       const exportUnifiedVideo=async()=>{
         const video=videoRef.current;if(!video||!videoSrc)return;
         const playlist=selectedCutsForMerge.map(id=>cuts.find(c=>c.id===id)||frames.find(f=>f.id===id)).filter(Boolean);
@@ -1623,7 +1423,6 @@
         next();
       };
 
-      // ── CATEGORY HANDLERS ──
       const handleCategoryChange=(id,field,val)=>setCategories(prev=>prev.map(c=>c.id!==id?c:{...c,[field]:field==='lead'||field==='lag'?val===''?'':Math.max(0,parseFloat(val)||0):val}));
 
       const handleAddCategory=e=>{
@@ -1703,11 +1502,11 @@
         if(editingContext.type==='frame'){const f=frames.find(i=>i.id===editingContext.id);return f?`Foto @ ${formatTime(f.time)}`:''}
         return '';
       };
-
+      
       return (
         <div className="min-h-screen flex flex-col" style={{background:'#080810',color:'#f1f5f9',fontFamily:'Inter,sans-serif'}}>
 
-          {/* ── CONTEXT MENUS ── */}
+          {/* ── CONTEXT MENU VIDEO ── */}
           {contextMenu&&(
             <ContextMenu
               x={contextMenu.x} y={contextMenu.y}
@@ -1724,11 +1523,69 @@
               onClose={()=>setContextMenu(null)}
             />
           )}
+
+          {/* ✅ CONTEXT MENU PIZARRA — con editor de ficha integrado */}
           {tbContextMenu&&(
-            <div className="context-menu" style={{left:tbContextMenu.x,top:tbContextMenu.y}}>
-              <div className="context-menu-item danger" onClick={()=>{setTbShapes(prev=>prev.filter(s=>s.id!==tbContextMenu.shapeId));setTbContextMenu(null);showToast("Figura eliminada","info");}}>
-                <Icons.Trash className="w-3.5 h-3.5"/>Eliminar figura
-              </div>
+            <div className="context-menu" style={{left:tbContextMenu.x,top:tbContextMenu.y}}
+              onClick={e=>e.stopPropagation()}>
+              {tbContextMenu.type==='player'?(
+                (()=>{
+                  const pl=tbPlayers.find(p=>p.id===tbContextMenu.playerId);
+                  if(!pl)return null;
+                  return(
+                    <>
+                      <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{color:'#60a5fa'}}>Editar Ficha</span>
+                        <button onClick={()=>setTbContextMenu(null)} className="text-slate-500 hover:text-white transition text-xs">✕</button>
+                      </div>
+                      {/* Número */}
+                      <div className="px-3 py-2 flex items-center gap-2">
+                        <span className="text-[10px] text-slate-400 w-14 flex-shrink-0 font-semibold">Número</span>
+                        <input type="text" value={pl.number} maxLength="3"
+                          onChange={e=>setTbPlayers(prev=>prev.map(p=>p.id===pl.id?{...p,number:e.target.value}:p))}
+                          className="flex-1 rounded px-2 py-1 text-xs text-white font-mono font-bold text-center focus:outline-none"
+                          style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.15)'}}/>
+                      </div>
+                      {/* Nombre */}
+                      <div className="px-3 py-2 flex items-center gap-2">
+                        <span className="text-[10px] text-slate-400 w-14 flex-shrink-0 font-semibold">Nombre</span>
+                        <input type="text" value={pl.name} placeholder="Apellido..."
+                          onChange={e=>setTbPlayers(prev=>prev.map(p=>p.id===pl.id?{...p,name:e.target.value}:p))}
+                          className="flex-1 rounded px-2 py-1 text-xs text-white focus:outline-none"
+                          style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.15)'}}/>
+                      </div>
+                      {/* Tamaño */}
+                      <div className="px-3 py-2 flex items-center gap-2">
+                        <span className="text-[10px] text-slate-400 w-14 flex-shrink-0 font-semibold">Tamaño</span>
+                        <input type="range" min="14" max="36" value={pl.size}
+                          onChange={e=>setTbPlayers(prev=>prev.map(p=>p.id===pl.id?{...p,size:parseInt(e.target.value)}:p))}
+                          className="flex-1 h-1 accent-blue-500"/>
+                        <span className="text-[10px] text-slate-400 font-mono w-6 text-right">{pl.size}</span>
+                      </div>
+                      {/* Color */}
+                      <div className="px-3 py-2 flex flex-col gap-1.5">
+                        <span className="text-[10px] text-slate-400 font-semibold">Color de ficha</span>
+                        <ColorPicker value={pl.color}
+                          onChange={c=>setTbPlayers(prev=>prev.map(p=>p.id===pl.id?{...p,color:c}:p))}/>
+                      </div>
+                      <div style={{height:1,background:'#334155',margin:'3px 4px'}}/>
+                      <div className="context-menu-item danger"
+                        onClick={()=>{setTbPlayers(prev=>prev.filter(p=>p.id!==pl.id));setTbContextMenu(null);showToast("Ficha eliminada","info");}}>
+                        <Icons.Trash className="w-3.5 h-3.5"/>Eliminar ficha
+                      </div>
+                      <div className="context-menu-item"
+                        onClick={()=>setTbContextMenu(null)}>
+                        <Icons.Check className="w-3.5 h-3.5"/>Listo
+                      </div>
+                    </>
+                  );
+                })()
+              ):(
+                <div className="context-menu-item danger"
+                  onClick={()=>{setTbShapes(prev=>prev.filter(s=>s.id!==tbContextMenu.shapeId));setTbContextMenu(null);showToast("Figura eliminada","info");}}>
+                  <Icons.Trash className="w-3.5 h-3.5"/>Eliminar figura
+                </div>
+              )}
             </div>
           )}
 
@@ -1765,15 +1622,15 @@
           {isExporting&&(
             <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{background:'rgba(0,0,0,0.85)',backdropFilter:'blur(12px)'}}>
               <div className="glass rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
-                <div className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center border-2 border-dashed border-fuchsia-500 animate-spin" style={{color:'#d946ef'}}>
+                <div className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center border-2 border-dashed border-blue-500 animate-spin" style={{color:'#2563eb'}}>
                   <Icons.VideoFile className="w-7 h-7"/>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-1">Exportando Video</h3>
-                <p className="text-sm text-slate-400 mb-6"><span className="text-fuchsia-400 font-semibold">{exportingName}</span></p>
+                <p className="text-sm text-slate-400 mb-6"><span className="font-semibold" style={{color:'#60a5fa'}}>{exportingName}</span></p>
                 <div className="w-full rounded-full h-2 mb-2 overflow-hidden" style={{background:'rgba(255,255,255,0.08)'}}>
-                  <div className="h-full rounded-full transition-all duration-100" style={{width:`${exportProgress}%`,background:'linear-gradient(90deg,#d946ef,#a855f7)'}}/>
+                  <div className="h-full rounded-full transition-all duration-100" style={{width:`${exportProgress}%`,background:'linear-gradient(90deg,#2563eb,#1d4ed8)'}}/>
                 </div>
-                <div className="text-sm font-mono font-bold text-fuchsia-300">{exportProgress}%</div>
+                <div className="text-sm font-mono font-bold" style={{color:'#60a5fa'}}>{exportProgress}%</div>
                 <p className="text-xs text-slate-500 mt-3">Mantené la pestaña activa</p>
               </div>
             </div>
@@ -1783,17 +1640,17 @@
           <header className="flex-shrink-0 glass border-b border-white/5 px-6 py-3.5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-sm shadow-lg animate-glow"
-                style={{background:'linear-gradient(135deg,#d946ef,#7c3aed)'}}>IS</div>
+                style={{background:'linear-gradient(135deg,#2563eb,#1d4ed8)'}}>IS</div>
               <div>
                 <h1 className="text-lg font-extrabold tracking-tight leading-none">
-                  <span style={{background:'linear-gradient(90deg,#d946ef,#a855f7)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>
+                  <span style={{background:'linear-gradient(90deg,#2563eb,#1d4ed8)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>
                     IS Análisis
                   </span>
                 </h1>
                 <p className="text-[10px] text-slate-500 font-medium tracking-wide">Plataforma Táctica Profesional</p>
               </div>
-              <div className="ml-2 px-2.5 py-1 rounded-full text-[11px] font-semibold text-fuchsia-300 border border-fuchsia-500/20 max-w-[180px] truncate"
-                style={{background:'rgba(217,70,239,0.08)'}}>
+              <div className="ml-2 px-2.5 py-1 rounded-full text-[11px] font-semibold border max-w-[180px] truncate"
+                style={{color:'#93c5fd',borderColor:'rgba(37,99,235,0.3)',background:'rgba(37,99,235,0.08)'}}>
                 📁 {activeProject.name}
               </div>
             </div>
@@ -1846,28 +1703,27 @@
               )}
 
               {focusTool&&(
-                <div className="flex-shrink-0 fs-hide flex items-center justify-between px-4 py-2 border-b border-fuchsia-500/20"
-                  style={{background:'rgba(217,70,239,0.04)'}}>
+                <div className="flex-shrink-0 fs-hide flex items-center justify-between px-4 py-2 border-b"
+                  style={{background:'rgba(37,99,235,0.04)',borderColor:'rgba(37,99,235,0.2)'}}>
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse"/>
-                    <span className="text-xs font-medium text-fuchsia-300">
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:'#60a5fa'}}/>
+                    <span className="text-xs font-medium" style={{color:'#93c5fd'}}>
                       🔍 Foco: {focusTool==='spotlight'?'Spotlight':focusTool==='zoom'?`Zoom ${zoomLevel}×`:focusTool==='tracker'?'Marcador':'Cuadro'} — Clic para posicionar
                     </span>
                   </div>
                   <button onClick={()=>{setFocusTool(null);setFocusShape(null);}}
-                    className="text-[11px] font-bold text-fuchsia-300 hover:text-white px-3 py-1 rounded-lg transition"
-                    style={{background:'rgba(217,70,239,0.12)'}}>Desactivar</button>
+                    className="text-[11px] font-bold hover:text-white px-3 py-1 rounded-lg transition"
+                    style={{background:'rgba(37,99,235,0.12)',color:'#93c5fd'}}>Desactivar</button>
                 </div>
               )}
 
-              {/* ✅ Banner de Tactical Spotlight activo */}
               {drawTool==='tactical_spotlight'&&(
                 <div className="flex-shrink-0 fs-hide flex items-center justify-between px-4 py-2 border-b border-yellow-500/20"
                   style={{background:'rgba(234,179,8,0.06)'}}>
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"/>
                     <span className="text-xs font-medium text-yellow-300">
-                      🔦 <strong>Spotlight de Jugador</strong> — Arrastrá sobre el jugador para crear el efecto
+                      🔦 <strong>Spotlight de Jugador</strong> — Arrastrá sobre el jugador
                     </span>
                   </div>
                   <button onClick={()=>setDrawTool('cursor')}
@@ -1890,33 +1746,22 @@
                         <img src={activeCompFrame.dataUrl} className="absolute inset-0 w-full h-full z-20"
                           alt="frame" style={{objectFit:'contain',background:'#000'}}/>
                       )}
-
-                      {/* ✅ SVG con renderizado en 3 pasadas para Tactical Spotlight */}
                       <svg ref={svgRef}
                         viewBox={`0 0 ${videoDimensions.width} ${videoDimensions.height}`}
-                        onPointerDown={handlePointerDown}
-                        onPointerMove={handlePointerMove}
-                        onPointerUp={handlePointerUp}
-                        onPointerLeave={handlePointerUp}
+                        onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
+                        onPointerUp={handlePointerUp} onPointerLeave={handlePointerUp}
                         style={{pointerEvents:(isPlaying||isPlayCompActive)?'none':'auto'}}
-                        className={`absolute inset-0 w-full h-full z-30 touch-none ${
-                          drawTool==='text'?'cursor-text':
-                          drawTool==='tactical_spotlight'?'cursor-crosshair':
-                          focusTool?'cursor-crosshair':''}`}>
-
-                        {/* PASADA 1: Conos de luz (detrás) */}
+                        className={`absolute inset-0 w-full h-full z-30 touch-none ${drawTool==='text'?'cursor-text':drawTool==='tactical_spotlight'?'cursor-crosshair':focusTool?'cursor-crosshair':''}`}>
+                        {/* PASADA 1: Conos */}
                         {shapes.filter(s=>s.type==='tactical_spotlight').map(s=>renderSpotlightCone(s))}
-
                         {/* PASADA 2: Shapes normales */}
                         {shapes.filter(s=>s.type!=='tactical_spotlight').map(s=>renderShape(s,false))}
                         {currentShape&&renderShape(currentShape,true)}
                         {renderFocusOverlay()}
-
-                        {/* PASADA 3: Anillos en los pies (delante) */}
+                        {/* PASADA 3: Anillos */}
                         {shapes.filter(s=>s.type==='tactical_spotlight').map(s=>renderSpotlightRing(s))}
                       </svg>
-
-                      {/* Fullscreen controls overlay */}
+                      {/* Fullscreen overlay */}
                       <div className={`fs-controls absolute bottom-0 left-0 right-0 z-40 transition-opacity duration-300 ${showControls?'show':''}`}>
                         <div className="px-4 pb-4 pt-10" style={{background:'linear-gradient(transparent,rgba(0,0,0,0.88))'}}>
                           <div data-timeline className="h-1.5 rounded-full cursor-pointer mb-3 relative"
@@ -1927,21 +1772,21 @@
                                 style={{left:`${(c.start/duration)*100}%`,width:`${((c.end-c.start)/duration)*100}%`,backgroundColor:c.color}}/>
                             ))}
                             <div className="h-full rounded-full relative pointer-events-none"
-                              style={{width:`${duration?(currentTime/duration)*100:0}%`,background:'linear-gradient(90deg,#d946ef,#a855f7)'}}>
+                              style={{width:`${duration?(currentTime/duration)*100:0}%`,background:'linear-gradient(90deg,#2563eb,#1d4ed8)'}}>
                               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-lg"/>
                             </div>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <button onClick={togglePlay} className="text-white hover:text-fuchsia-300 transition">
+                              <button onClick={togglePlay} className="text-white hover:text-blue-300 transition">
                                 {isPlaying?<Icons.Pause className="w-5 h-5"/>:<Icons.Play className="w-5 h-5"/>}
                               </button>
                               <span className="text-xs font-mono text-slate-300">
-                                <span className="text-fuchsia-300">{formatTime(currentTime)}</span>
+                                <span style={{color:'#60a5fa'}}>{formatTime(currentTime)}</span>
                                 <span className="text-slate-500 mx-1">/</span>{formatTime(duration)}
                               </span>
                             </div>
-                            <button onClick={toggleFullscreen} className="text-white hover:text-fuchsia-300 transition">
+                            <button onClick={toggleFullscreen} className="text-white hover:text-blue-300 transition">
                               <Icons.ExitFS className="w-5 h-5"/>
                             </button>
                           </div>
@@ -1952,7 +1797,8 @@
                 ):activeProject.videoName?(
                   <div className="text-center max-w-sm p-8 rounded-2xl border border-dashed border-white/8"
                     style={{background:'rgba(255,255,255,0.02)'}}>
-                    <div className="w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center" style={{background:'rgba(217,70,239,0.1)',color:'#d946ef'}}>
+                    <div className="w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center"
+                      style={{background:'rgba(37,99,235,0.1)',color:'#2563eb'}}>
                       <Icons.VideoFile className="w-7 h-7"/>
                     </div>
                     <h2 className="text-base font-bold mb-2 text-white">Archivo de video requerido</h2>
@@ -1962,11 +1808,12 @@
                 ):(
                   <div className="text-center max-w-sm p-10 rounded-2xl border border-dashed border-white/6"
                     style={{background:'rgba(255,255,255,0.015)'}}>
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{background:'rgba(217,70,239,0.08)'}}>
-                      <Icons.Upload className="w-8 h-8" style={{color:'#d946ef'}}/>
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+                      style={{background:'rgba(37,99,235,0.08)'}}>
+                      <Icons.Upload className="w-8 h-8" style={{color:'#2563eb'}}/>
                     </div>
                     <h2 className="text-base font-bold mb-2 text-white">Sin video asociado</h2>
-                    <p className="text-xs text-slate-500 mb-6">Vinculá una grabación a <span className="text-fuchsia-400 font-semibold">"{activeProject.name}"</span></p>
+                    <p className="text-xs text-slate-500 mb-6">Vinculá una grabación a <span className="font-semibold" style={{color:'#60a5fa'}}>"{activeProject.name}"</span></p>
                     <button onClick={()=>fileInputRef.current?.click()} className="btn-premium px-6 py-2.5 rounded-lg text-xs font-bold text-white">Elegir archivo</button>
                   </div>
                 )}
@@ -1983,11 +1830,11 @@
                   <div className="absolute top-5 left-5 right-5 flex justify-between items-center px-4 py-3 rounded-xl z-40 glass">
                     <div className="flex items-center gap-3">
                       <span className="relative flex h-2.5 w-2.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fuchsia-400 opacity-75"/>
-                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-fuchsia-500"/>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{background:'#60a5fa'}}/>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{background:'#2563eb'}}/>
                       </span>
                       <div>
-                        <span className="block text-[10px] font-bold text-fuchsia-400 uppercase tracking-widest">Compilado en Vivo</span>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest" style={{color:'#60a5fa'}}>Compilado en Vivo</span>
                         <span className="text-xs text-slate-300">{compPlayIndex+1}/{selectedCutsForMerge.length}</span>
                       </div>
                     </div>
@@ -2013,8 +1860,7 @@
                       {tool:'clone',icon:<Icons.Clone className="w-4 h-4"/>,title:'Clonar Jugador'},
                       {tool:'text',icon:<Icons.TextIcon className="w-4 h-4"/>,title:'Texto'},
                       null,
-                      // ✅ NUEVA HERRAMIENTA — Tactical Spotlight
-                      {tool:'tactical_spotlight',icon:<Icons.TacticalSpot className="w-4 h-4"/>,title:'Spotlight de Jugador (tracking)'},
+                      {tool:'tactical_spotlight',icon:<Icons.TacticalSpot className="w-4 h-4"/>,title:'Spotlight de Jugador'},
                     ].map((item,i)=>item===null
                       ?<div key={i} className="w-px h-5 mx-0.5" style={{background:'rgba(255,255,255,0.08)'}}/>
                       :<button key={item.tool}
@@ -2024,30 +1870,26 @@
                           style={drawTool===item.tool&&!focusTool?
                             item.tool==='tactical_spotlight'?
                               {background:'linear-gradient(135deg,#b45309,#d97706)',border:'1px solid rgba(217,119,6,0.6)'}:
-                              {background:'linear-gradient(135deg,#d946ef44,#7c3aed44)',border:'1px solid rgba(217,70,239,0.4)'}
+                              {background:'linear-gradient(135deg,#2563eb44,#1d4ed844)',border:'1px solid rgba(37,99,235,0.4)'}
                             :{}}>
                           {item.icon}
                         </button>
                     )}
-
                     {drawTool==='clone'&&(
                       <button onClick={()=>setCloneTrailActive(p=>!p)}
                         className={`ml-1 px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 ${cloneTrailActive?'text-white':'text-slate-400 hover:text-white hover:bg-white/5'}`}
-                        style={cloneTrailActive?{background:'rgba(99,102,241,0.2)',border:'1px solid rgba(99,102,241,0.4)'}:{border:'1px solid rgba(255,255,255,0.08)'}}>
+                        style={cloneTrailActive?{background:'rgba(37,99,235,0.2)',border:'1px solid rgba(37,99,235,0.4)'}:{border:'1px solid rgba(255,255,255,0.08)'}}>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12 Q 8 6 12 12 Q 16 18 21 12" strokeDasharray="4,2"/><polyline points="17 12 21 12 19 8"/></svg>
                         {cloneTrailActive?'Trail ON':'Trail'}
                       </button>
                     )}
-
                     <div className="w-px h-5 mx-0.5" style={{background:'rgba(255,255,255,0.08)'}}/>
-
-                    {/* Focos */}
                     <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mx-1">Foco</span>
                     {[
                       {tool:'spotlight',icon:<Icons.Spotlight className="w-4 h-4"/>,title:'Spotlight',color:'rgba(245,158,11,0.3)'},
                       {tool:'zoom',icon:<Icons.ZoomIn className="w-4 h-4"/>,title:'Zoom',color:'rgba(249,115,22,0.3)'},
                       {tool:'tracker',icon:<Icons.Crosshair className="w-4 h-4"/>,title:'Marcador',color:'rgba(16,185,129,0.3)'},
-                      {tool:'focusbox',icon:<Icons.FocusBox className="w-4 h-4"/>,title:'Cuadro',color:'rgba(217,70,239,0.3)'},
+                      {tool:'focusbox',icon:<Icons.FocusBox className="w-4 h-4"/>,title:'Cuadro',color:'rgba(37,99,235,0.3)'},
                     ].map(item=>(
                       <button key={item.tool} onClick={()=>handleFocusToolSelect(item.tool)} title={item.title}
                         className={`p-1.5 rounded-lg transition-all ${focusTool===item.tool?'text-white':'text-slate-500 hover:text-white hover:bg-white/5'}`}
@@ -2055,7 +1897,6 @@
                         {item.icon}
                       </button>
                     ))}
-
                     {focusTool==='zoom'&&(
                       <div className="flex items-center gap-1 px-2 py-1 rounded-lg ml-1" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)'}}>
                         {[1.5,2,3,4].map(z=>(
@@ -2066,10 +1907,7 @@
                       </div>
                     )}
                   </div>
-
-                  {/* Color + acciones */}
                   <div className="flex items-center gap-3">
-                    {/* ✅ Color diferente según herramienta activa */}
                     {drawTool==='tactical_spotlight'?(
                       <>
                         <span className="text-[9px] font-bold text-yellow-600 uppercase tracking-widest">Color Spotlight</span>
@@ -2084,8 +1922,8 @@
                     <div className="flex items-center gap-1 ml-auto">
                       {editingContext.type==='global'&&shapes.length>0&&(
                         <button onClick={saveBoardAsTacticalCut}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-fuchsia-300 transition"
-                          style={{background:'rgba(217,70,239,0.08)',border:'1px solid rgba(217,70,239,0.2)'}}>
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition"
+                          style={{background:'rgba(37,99,235,0.08)',border:'1px solid rgba(37,99,235,0.2)',color:'#93c5fd'}}>
                           <Icons.SaveDisk className="w-3.5 h-3.5"/>Guardar como Corte
                         </button>
                       )}
@@ -2100,11 +1938,11 @@
                       </button>
                       <div className="w-px h-4 mx-0.5" style={{background:'rgba(255,255,255,0.08)'}}/>
                       <button onClick={()=>setShapes(p=>p.slice(0,-1))} disabled={!shapes.length}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-20 transition" title="Deshacer">
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-20 transition">
                         <Icons.Undo className="w-4 h-4"/>
                       </button>
                       <button onClick={()=>{setShapes([]);setSelectedShapeId(null);}} disabled={!shapes.length}
-                        className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-white/5 disabled:opacity-20 transition" title="Limpiar">
+                        className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-white/5 disabled:opacity-20 transition">
                         <Icons.Eraser className="w-4 h-4"/>
                       </button>
                     </div>
@@ -2130,15 +1968,13 @@
                       </div>
                     ))}
                     <div className="h-full rounded-full relative pointer-events-none"
-                      style={{width:`${duration?(currentTime/duration)*100:0}%`,background:'linear-gradient(90deg,#d946ef,#a855f7)'}}>
+                      style={{width:`${duration?(currentTime/duration)*100:0}%`,background:'linear-gradient(90deg,#2563eb,#1d4ed8)'}}>
                       <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-lg"
-                        style={{boxShadow:'0 0 8px rgba(217,70,239,0.8)'}}/>
+                        style={{boxShadow:'0 0 8px rgba(37,99,235,0.8)'}}/>
                     </div>
                   </div>
                   <div className="flex justify-between text-[9px] text-slate-600 mt-1.5 font-mono">
-                    <span>00:00</span>
-                    <span>Arrastrá los bordes para ajustar duración</span>
-                    <span>{formatTime(duration)}</span>
+                    <span>00:00</span><span>Arrastrá los bordes para ajustar duración</span><span>{formatTime(duration)}</span>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -2149,7 +1985,7 @@
                     </button>
                     <div>
                       <div className="text-sm font-mono font-bold">
-                        <span style={{color:'#d946ef'}}>{formatTime(currentTime)}</span>
+                        <span style={{color:'#2563eb'}}>{formatTime(currentTime)}</span>
                         <span className="text-slate-600 mx-1">/</span>
                         <span className="text-slate-400">{formatTime(duration)}</span>
                       </div>
@@ -2161,7 +1997,7 @@
                     {[0.25,0.5,1,1.5,2].map(r=>(
                       <button key={r} onClick={()=>handleSpeedChange(r)} disabled={!videoSrc||isPlayCompActive}
                         className={`px-2.5 py-1 rounded text-xs font-bold transition disabled:opacity-30 ${playbackRate===r?'text-white':'text-slate-500 hover:text-white hover:bg-white/5'}`}
-                        style={playbackRate===r?{background:'linear-gradient(135deg,#d946ef44,#7c3aed44)',border:'1px solid rgba(217,70,239,0.4)'}:{}}>
+                        style={playbackRate===r?{background:'linear-gradient(135deg,#2563eb44,#1d4ed844)',border:'1px solid rgba(37,99,235,0.4)'}:{}}>
                         {r}×
                       </button>
                     ))}
@@ -2263,8 +2099,8 @@
                         ))}
                         <div className="w-px h-4 mx-0.5" style={{background:'rgba(255,255,255,0.08)'}}/>
                         <button onClick={()=>setTbShowZones(p=>!p)}
-                          className={`px-2 py-1 rounded text-[10px] font-bold transition ${tbShowZones?'text-fuchsia-300':'text-slate-500 hover:text-slate-300'}`}
-                          style={tbShowZones?{background:'rgba(217,70,239,0.15)',border:'1px solid rgba(217,70,239,0.3)'}:{}}>
+                          className={`px-2 py-1 rounded text-[10px] font-bold transition ${tbShowZones?'text-blue-300':'text-slate-500 hover:text-slate-300'}`}
+                          style={tbShowZones?{background:'rgba(37,99,235,0.15)',border:'1px solid rgba(37,99,235,0.3)'}:{}}>
                           20Z
                         </button>
                         <div className="ml-auto flex gap-1">
@@ -2277,62 +2113,60 @@
                             <Icons.Eraser className="w-3.5 h-3.5"/>
                           </button>
                           <button onClick={()=>{const f=FORMATIONS[tbFormation];if(!f)return;const home=f.positions.map((pos,i)=>({id:`home-${i}`,team:'home',x:(pos.x/100)*TB_W,y:(pos.y/100)*TB_H,number:String(i===0?1:i),name:'',color:tbHomeColor,size:22}));const away=f.positions.map((pos,i)=>({id:`away-${i}`,team:'away',x:TB_W-(pos.x/100)*TB_W,y:TB_H-(pos.y/100)*TB_H,number:String(i===0?1:i),name:'',color:tbAwayColor,size:22}));setTbPlayers([...home,...away]);}}
-                            className="p-1.5 text-amber-400 hover:text-amber-300 rounded-lg hover:bg-white/5 transition" title="Resetear posiciones">
+                            className="p-1.5 text-amber-400 hover:text-amber-300 rounded-lg hover:bg-white/5 transition" title="Resetear">
                             <span className="text-sm font-bold">↺</span>
                           </button>
                         </div>
                       </div>
 
+                      {/* Color pizarra */}
                       <div className="flex-shrink-0 px-3 py-1.5 border-b border-white/5 flex items-center gap-2"
                         style={{background:'rgba(8,8,16,0.6)'}}>
                         <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Color</span>
                         <ColorPicker value={tbColor} onChange={setTbColor}/>
                       </div>
 
-                      {editingPlayer&&(()=>{
-                        const pl=tbPlayers.find(p=>p.id===editingPlayer);if(!pl)return null;
-                        return(
-                          <div className="flex-shrink-0 flex items-center gap-2 px-3 py-2 border-b border-white/5"
-                            style={{background:'rgba(16,185,129,0.04)'}}>
-                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Jugador</span>
-                            <input type="text" placeholder="#" value={pl.number}
-                              onChange={e=>setTbPlayers(prev=>prev.map(p=>p.id===editingPlayer?{...p,number:e.target.value}:p))}
-                              className="w-9 rounded-lg px-1 py-1 text-xs text-white text-center font-bold focus:outline-none"
-                              style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)'}}/>
-                            <input type="text" placeholder="Nombre del jugador" value={pl.name}
-                              onChange={e=>setTbPlayers(prev=>prev.map(p=>p.id===editingPlayer?{...p,name:e.target.value}:p))}
-                              className="flex-1 rounded-lg px-2 py-1 text-xs text-white focus:outline-none"
-                              style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)'}}/>
-                            <input type="range" min="14" max="32" value={pl.size}
-                              onChange={e=>setTbPlayers(prev=>prev.map(p=>p.id===editingPlayer?{...p,size:parseInt(e.target.value)}:p))}
-                              className="w-16 accent-emerald-400 h-1"/>
-                            <ColorPicker value={pl.color} onChange={c=>setTbPlayers(prev=>prev.map(p=>p.id===editingPlayer?{...p,color:c}:p))}/>
-                            <button onClick={()=>setEditingPlayer(null)} className="text-slate-500 hover:text-white transition p-0.5">
-                              <Icons.X className="w-3.5 h-3.5"/>
-                            </button>
-                          </div>
-                        );
-                      })()}
+                      {/* ✅ Instrucción para editar fichas */}
+                      <div className="flex-shrink-0 px-3 py-1.5 border-b border-white/5 text-center"
+                        style={{background:'rgba(37,99,235,0.04)'}}>
+                        <span className="text-[9px] text-blue-400 font-medium">
+                          Clic izquierdo para mover fichas · <strong>Clic derecho</strong> para editar nombre, número y color
+                        </span>
+                      </div>
 
                       {/* Cancha horizontal SVG */}
                       <div className="flex-1 overflow-hidden" style={{background:'#1a3a1a'}}>
                         <svg ref={tbSvgRef} viewBox={`0 0 ${TB_W} ${TB_H}`} className="w-full h-full"
-                          onPointerDown={handleTbPointerDown} onPointerMove={handleTbPointerMove}
-                          onPointerUp={handleTbPointerUp} onPointerLeave={handleTbPointerUp}
+                          onPointerDown={handleTbPointerDown}
+                          onPointerMove={handleTbPointerMove}
+                          onPointerUp={handleTbPointerUp}
+                          onPointerLeave={handleTbPointerUp}
                           style={{cursor:tbTool==='cursor'?'default':'crosshair'}}>
+
                           <defs>
                             <linearGradient id="grass" x1="0%" y1="0%" x2="100%" y2="0%">
                               {[0,1,2,3,4,5,6,7].map(i=><stop key={i} offset={`${i*12.5}%`} stopColor={i%2===0?"#1e4d1e":"#1a451a"}/>)}
                             </linearGradient>
                           </defs>
                           <rect width={TB_W} height={TB_H} fill="url(#grass)"/>
+
+                          {/* 20 Zonas Pep */}
                           {tbShowZones&&tbZones.map(zone=>{
                             const zx=(zone.x/100)*TB_W,zy=(zone.y/100)*TB_H,zw=(zone.w/100)*TB_W,zh=(zone.h/100)*TB_H;
                             return(<g key={zone.id}>
-                              <rect x={zx} y={zy} width={zw} height={zh} fill={zone.active?`${zone.color}33`:'transparent'} stroke={zone.active?zone.color:'rgba(217,70,239,0.2)'} strokeWidth="1" className="zone-cell" onClick={()=>setTbZones(prev=>prev.map(z=>z.id===zone.id?{...z,active:!z.active}:z))}/>
-                              <text x={zx+zw/2} y={zy+zh/2} textAnchor="middle" dominantBaseline="middle" fill={zone.active?zone.color:'rgba(217,70,239,0.3)'} fontSize="9" fontWeight="600" fontFamily="Inter,sans-serif" style={{pointerEvents:'none'}}>{zone.name}</text>
+                              <rect x={zx} y={zy} width={zw} height={zh}
+                                fill={zone.active?`${zone.color}33`:'transparent'}
+                                stroke={zone.active?zone.color:'rgba(37,99,235,0.2)'}
+                                strokeWidth="1" className="zone-cell"
+                                onClick={()=>setTbZones(prev=>prev.map(z=>z.id===zone.id?{...z,active:!z.active}:z))}/>
+                              <text x={zx+zw/2} y={zy+zh/2} textAnchor="middle" dominantBaseline="middle"
+                                fill={zone.active?zone.color:'rgba(37,99,235,0.3)'}
+                                fontSize="9" fontWeight="600" fontFamily="Inter,sans-serif"
+                                style={{pointerEvents:'none'}}>{zone.name}</text>
                             </g>);
                           })}
+
+                          {/* Líneas cancha */}
                           <rect x="25" y="20" width={TB_W-50} height={TB_H-40} fill="none" stroke="white" strokeWidth="2.5" opacity="0.9"/>
                           <line x1={TB_W/2} y1="20" x2={TB_W/2} y2={TB_H-20} stroke="white" strokeWidth="1.5" opacity="0.8"/>
                           <circle cx={TB_W/2} cy={TB_H/2} r="60" fill="none" stroke="white" strokeWidth="1.5" opacity="0.8"/>
@@ -2350,77 +2184,110 @@
                           {[[25,20,1,1],[TB_W-25,20,-1,1],[25,TB_H-20,1,-1],[TB_W-25,TB_H-20,-1,-1]].map(([cx,cy,rx,ry],i)=>(
                             <path key={i} d={`M ${cx} ${cy} A 12 12 0 0 ${rx>0?1:0} ${cx+rx*12} ${cy+ry*12}`} fill="none" stroke="white" strokeWidth="1.5" opacity="0.6"/>
                           ))}
+
+                          {/* Figuras dibujadas */}
                           {tbShapes.map(s=>renderTbShape(s,false))}
                           {tbCurrentShape&&renderTbShape(tbCurrentShape,true)}
+
+                          {/* ✅ FICHAS — clic izquierdo arrastra, clic derecho edita */}
                           {tbPlayers.map(player=>{
-                            const isSel=tbSelectedId===player.id||editingPlayer===player.id;
+                            const isSel=tbSelectedId===player.id;
                             const textColor=getContrastColor(player.color);
-                            return(<g key={player.id} style={{cursor:'move'}}
-                              onPointerDown={e=>{e.stopPropagation();setTbSelectedId(player.id);setEditingPlayer(player.id);const pos=getTbMousePos(e);setTbInteraction({mode:'drag_player',playerId:player.id,startPos:pos,origX:player.x,origY:player.y});}}>
-                              {isSel&&<circle cx={player.x} cy={player.y} r={player.size+5} fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="4,3" opacity="0.7"/>}
-                              <circle cx={player.x} cy={player.y} r={player.size} fill={player.color}/>
-                              <circle cx={player.x} cy={player.y} r={player.size} fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="1.5"/>
-                              <text x={player.x} y={player.y+(player.name?-3:0)} textAnchor="middle" dominantBaseline="middle" fill={textColor} fontSize={player.size*0.7} fontWeight="800" fontFamily="Inter,sans-serif" style={{pointerEvents:'none',letterSpacing:'-0.5px'}}>{player.number}</text>
-                              {player.name&&<text x={player.x} y={player.y+player.size+11} textAnchor="middle" fill="white" fontSize="9" fontWeight="600" fontFamily="Inter,sans-serif" style={{pointerEvents:'none'}}>{player.name}</text>}
-                            </g>);
+                            return(
+                              <g key={player.id}
+                                style={{cursor:'move'}}
+                                onPointerDown={e=>{
+                                  // ✅ Solo clic izquierdo arrastra
+                                  if(e.button!==0)return;
+                                  e.stopPropagation();
+                                  setTbSelectedId(player.id);
+                                  const pos=getTbMousePos(e);
+                                  setTbInteraction({mode:'drag_player',playerId:player.id,startPos:pos,origX:player.x,origY:player.y});
+                                }}
+                                onContextMenu={e=>{
+                                  // ✅ Clic derecho abre editor de ficha
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setTbContextMenu({
+                                    x:e.clientX,
+                                    y:e.clientY,
+                                    type:'player',
+                                    playerId:player.id,
+                                  });
+                                }}>
+                                {isSel&&<circle cx={player.x} cy={player.y} r={player.size+5} fill="none" stroke="white" strokeWidth="1.5" strokeDasharray="4,3" opacity="0.7"/>}
+                                {/* Ficha limpia sin aura */}
+                                <circle cx={player.x} cy={player.y} r={player.size} fill={player.color}/>
+                                <circle cx={player.x} cy={player.y} r={player.size} fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="1.5"/>
+                                <text x={player.x} y={player.y+(player.name?-3:0)}
+                                  textAnchor="middle" dominantBaseline="middle"
+                                  fill={textColor} fontSize={player.size*0.7} fontWeight="800"
+                                  fontFamily="Inter,sans-serif"
+                                  style={{pointerEvents:'none',letterSpacing:'-0.5px'}}>
+                                  {player.number}
+                                </text>
+                                {player.name&&(
+                                  <text x={player.x} y={player.y+player.size+11}
+                                    textAnchor="middle" fill="white" fontSize="9"
+                                    fontWeight="600" fontFamily="Inter,sans-serif"
+                                    style={{pointerEvents:'none'}}>
+                                    {player.name}
+                                  </text>
+                                )}
+                              </g>
+                            );
                           })}
                         </svg>
                       </div>
-                      <div className="flex-shrink-0 px-3 py-1.5 border-t border-white/5 text-center" style={{background:'rgba(8,8,16,0.8)'}}>
-                        <span className="text-[9px] text-slate-600">Clic en ficha para editar · Arrastrá para mover · Clic derecho para eliminar · 20Z activa zonas Guardiola</span>
+
+                      <div className="flex-shrink-0 px-3 py-1.5 border-t border-white/5 text-center"
+                        style={{background:'rgba(8,8,16,0.8)'}}>
+                        <span className="text-[9px] text-slate-600">
+                          Arrastrá figuras · Clic derecho para eliminar figuras o editar fichas · 20Z activa zonas Guardiola
+                        </span>
                       </div>
                     </div>
                   )}
                 </div>
               ):(
                 <>
-                  {/* Shape Inspector */}
+                  {/* Inspector de shapes — igual que antes */}
                   {isShapeSelected&&(
                     <div className="flex-shrink-0 border-b border-white/5 p-4 space-y-3 max-h-[55vh] overflow-y-auto animate-slide-in"
                       style={{background:'rgba(245,158,11,0.03)'}}>
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                          {selectedShape.type==='tactical_spotlight'?'🔦 Spotlight de Jugador':'⚙️ Inspector'}
+                          {selectedShape.type==='tactical_spotlight'?'🔦 Spotlight':'⚙️ Inspector'}
                         </span>
                         <button onClick={()=>setSelectedShapeId(null)}
                           className="text-[10px] text-slate-400 hover:text-white px-2 py-0.5 rounded transition"
                           style={{background:'rgba(255,255,255,0.05)'}}>Cerrar</button>
                       </div>
 
-                      {/* ✅ INSPECTOR ESPECIAL para Tactical Spotlight */}
                       {selectedShape.type==='tactical_spotlight'&&(
                         <div className="space-y-3">
-                          {/* Color */}
                           <div className="rounded-xl p-3 space-y-2" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Color del Spotlight</span>
-                            <ColorPicker value={selectedShape.color||'#d946ef'}
+                            <ColorPicker value={selectedShape.color||'#2563eb'}
                               onChange={c=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,color:c}:s))}/>
                           </div>
-
-                          {/* Keyframes */}
                           <div className="rounded-xl p-3 space-y-2" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
                             <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                📍 Puntos de Tracking ({selectedShape.keyframes?.length||0})
-                              </span>
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">📍 Puntos de Tracking ({selectedShape.keyframes?.length||0})</span>
                               {selectedShape.keyframes?.length>0&&(
                                 <button onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,keyframes:[]}:s))}
-                                  className="text-[9px] text-red-400 hover:text-red-300 font-bold transition">
-                                  Limpiar todos
-                                </button>
+                                  className="text-[9px] text-red-400 hover:text-red-300 font-bold transition">Limpiar todos</button>
                               )}
                             </div>
                             {(!selectedShape.keyframes||selectedShape.keyframes.length===0)&&(
-                              <p className="text-[10px] text-slate-600 leading-relaxed">
-                                Seleccioná el spotlight y arrastralo en distintos momentos del video para agregar puntos de tracking.
-                              </p>
+                              <p className="text-[10px] text-slate-600 leading-relaxed">Seleccioná el spotlight y arrastralo en distintos momentos para agregar puntos de tracking.</p>
                             )}
                             <div className="space-y-1 max-h-40 overflow-y-auto">
                               {selectedShape.keyframes?.map((kf,i)=>(
                                 <div key={i} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg"
-                                  style={{background:Math.abs(kf.time-currentTime)<0.15?'rgba(217,70,239,0.12)':'rgba(255,255,255,0.03)',border:Math.abs(kf.time-currentTime)<0.15?'1px solid rgba(217,70,239,0.3)':'1px solid rgba(255,255,255,0.05)'}}>
+                                  style={{background:Math.abs(kf.time-currentTime)<0.15?'rgba(37,99,235,0.12)':'rgba(255,255,255,0.03)',border:Math.abs(kf.time-currentTime)<0.15?'1px solid rgba(37,99,235,0.3)':'1px solid rgba(255,255,255,0.05)'}}>
                                   <div className="flex items-center gap-2">
-                                    <span className="text-[9px] font-mono font-bold text-fuchsia-400">{formatTime(kf.time)}</span>
+                                    <span className="text-[9px] font-mono font-bold" style={{color:'#60a5fa'}}>{formatTime(kf.time)}</span>
                                     <span className="text-[9px] text-slate-600 font-mono">x:{Math.round(kf.x)} y:{Math.round(kf.y)}</span>
                                   </div>
                                   <div className="flex items-center gap-1.5">
@@ -2433,19 +2300,15 @@
                               ))}
                             </div>
                           </div>
-
-                          {/* Instrucción de uso */}
                           <div className="rounded-xl p-3" style={{background:'rgba(234,179,8,0.06)',border:'1px solid rgba(234,179,8,0.15)'}}>
                             <p className="text-[10px] text-yellow-400 leading-relaxed font-medium">
                               💡 <strong>Cómo usar el tracking:</strong><br/>
-                              1. Pausá el video donde el jugador está en una posición<br/>
+                              1. Pausá el video en un momento<br/>
                               2. Arrastrá el spotlight hasta el jugador<br/>
-                              3. Repetí en distintos momentos del corte<br/>
-                              4. Al reproducir, el efecto seguirá al jugador
+                              3. Repetí en distintos momentos<br/>
+                              4. Al reproducir, el efecto sigue al jugador
                             </p>
                           </div>
-
-                          {/* Eliminar */}
                           <button onClick={()=>{setShapes(p=>p.filter(s=>s.id!==selectedShapeId));setSelectedShapeId(null);showToast("Spotlight eliminado","info");}}
                             className="w-full py-1.5 rounded-lg text-[10px] font-bold text-red-300 transition"
                             style={{background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.18)'}}>
@@ -2454,10 +2317,8 @@
                         </div>
                       )}
 
-                      {/* Inspector normal para otros shapes */}
                       {selectedShape.type!=='tactical_spotlight'&&(
                         <>
-                          {/* Animación */}
                           <div className="rounded-xl p-3 space-y-2" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">✨ Animación</span>
                             <div className="grid grid-cols-5 gap-1.5">
@@ -2465,14 +2326,13 @@
                                 <button key={String(v)} type="button"
                                   onClick={()=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,animation:v}:s))}
                                   className={`py-1.5 rounded-lg text-[10px] font-bold transition ${selectedShape.animation===v?'text-white':'text-slate-500 hover:text-slate-300'}`}
-                                  style={selectedShape.animation===v?{background:'linear-gradient(135deg,#d946ef33,#7c3aed33)',border:'1px solid rgba(217,70,239,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                  style={selectedShape.animation===v?{background:'linear-gradient(135deg,#2563eb33,#1d4ed833)',border:'1px solid rgba(37,99,235,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
                                   {l}
                                 </button>
                               ))}
                             </div>
                           </div>
 
-                          {/* Duración */}
                           {editingContext.type!=='frame'&&(
                             <div className="rounded-xl p-3 space-y-2" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
                               <div className="flex justify-between items-center">
@@ -2484,14 +2344,14 @@
                                   <button key={s} type="button"
                                     onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:s}:sh))}
                                     className={`py-1.5 rounded-lg text-xs font-black transition ${selectedShape.duration===s?'text-white':'text-slate-500 hover:text-slate-300'}`}
-                                    style={selectedShape.duration===s?{background:'linear-gradient(135deg,#3b82f633,#6366f133)',border:'1px solid rgba(99,102,241,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                    style={selectedShape.duration===s?{background:'linear-gradient(135deg,#2563eb33,#1d4ed833)',border:'1px solid rgba(37,99,235,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
                                     {s}s
                                   </button>
                                 ))}
                                 <button type="button"
                                   onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:'infinite'}:sh))}
                                   className={`py-1.5 rounded-lg text-xs font-black transition ${selectedShape.duration==='infinite'||!selectedShape.duration?'text-white':'text-slate-500 hover:text-slate-300'}`}
-                                  style={selectedShape.duration==='infinite'||!selectedShape.duration?{background:'linear-gradient(135deg,#3b82f633,#6366f133)',border:'1px solid rgba(99,102,241,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                  style={selectedShape.duration==='infinite'||!selectedShape.duration?{background:'linear-gradient(135deg,#2563eb33,#1d4ed833)',border:'1px solid rgba(37,99,235,0.4)'}:{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
                                   ∞
                                 </button>
                               </div>
@@ -2501,7 +2361,7 @@
                                   <span className="text-[10px] text-slate-500 font-bold">Ajuste fino:</span>
                                   <div className="flex items-center gap-1.5">
                                     <button type="button" onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:Math.max(0.5,+((parseFloat(sh.duration)||1)-0.5).toFixed(1))}:sh))} className="px-2 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white transition" style={{background:'rgba(255,255,255,0.06)'}}>−0.5s</button>
-                                    <span className="font-mono text-xs font-bold text-blue-400 px-2 py-0.5 rounded" style={{background:'rgba(59,130,246,0.1)'}}>{selectedShape.duration}s</span>
+                                    <span className="font-mono text-xs font-bold text-blue-400 px-2 py-0.5 rounded" style={{background:'rgba(37,99,235,0.1)'}}>{selectedShape.duration}s</span>
                                     <button type="button" onClick={()=>setShapes(p=>p.map(sh=>sh.id===selectedShapeId?{...sh,duration:+((parseFloat(sh.duration)||1)+0.5).toFixed(1)}:sh))} className="px-2 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white transition" style={{background:'rgba(255,255,255,0.06)'}}>+0.5s</button>
                                   </div>
                                 </div>
@@ -2556,7 +2416,7 @@
                                     </div>
                                     <input type="range" min={min} max={max} value={selectedShape[key]||def}
                                       onChange={e=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,[key]:parseInt(e.target.value)}:s))}
-                                      className="w-full h-1 rounded accent-fuchsia-500 bg-white/10"/>
+                                      className="w-full h-1 rounded accent-blue-500 bg-white/10"/>
                                   </div>
                                 ))}
                                 {selectedShape.hasBg&&(
@@ -2567,7 +2427,7 @@
                                     </div>
                                     <input type="range" min={10} max={100} value={Math.round((selectedShape.bgOpacity??0.85)*100)}
                                       onChange={e=>setShapes(p=>p.map(s=>s.id===selectedShapeId?{...s,bgOpacity:parseFloat(e.target.value)/100}:s))}
-                                      className="w-full h-1 rounded accent-fuchsia-500 bg-white/10"/>
+                                      className="w-full h-1 rounded accent-blue-500 bg-white/10"/>
                                   </div>
                                 )}
                               </div>
@@ -2617,8 +2477,8 @@
                       {id:'config',icon:<Icons.Settings className="w-4 h-4"/>,label:'Ajustes'},
                     ].map(t=>(
                       <button key={t.id} onClick={()=>setActiveTab(t.id)}
-                        className={`flex-1 py-3.5 text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1.5 border-b-2 transition-all ${activeTab===t.id?'text-fuchsia-400':'border-transparent text-slate-600 hover:text-slate-400'}`}
-                        style={activeTab===t.id?{borderColor:'#d946ef',background:'rgba(217,70,239,0.04)'}:{}}>
+                        className={`flex-1 py-3.5 text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1.5 border-b-2 transition-all ${activeTab===t.id?'border-transparent':'border-transparent text-slate-600 hover:text-slate-400'}`}
+                        style={activeTab===t.id?{borderColor:'#2563eb',background:'rgba(37,99,235,0.04)',color:'#60a5fa'}:{}}>
                         {t.icon}
                         <span className="hidden sm:inline">{t.label}</span>
                       </button>
@@ -2634,7 +2494,8 @@
                       <div className="space-y-4 animate-fade-up">
                         <div className="rounded-2xl p-4 space-y-3"
                           style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                          <h3 className="text-xs font-bold text-fuchsia-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-1.5"
+                            style={{color:'#60a5fa'}}>
                             <Icons.Plus className="w-3.5 h-3.5"/>Nuevo Proyecto
                           </h3>
                           <form onSubmit={handleCreateProject} className="space-y-2">
@@ -2642,7 +2503,7 @@
                               value={newProjName} onChange={e=>setNewProjName(e.target.value)}
                               className="w-full rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none transition"
                               style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)'}}
-                              onFocus={e=>e.target.style.borderColor='rgba(217,70,239,0.5)'}
+                              onFocus={e=>e.target.style.borderColor='rgba(37,99,235,0.5)'}
                               onBlur={e=>e.target.style.borderColor='rgba(255,255,255,0.08)'}/>
                             <button type="submit" className="w-full btn-premium py-2.5 rounded-xl text-xs font-bold text-white">
                               Crear Proyecto
@@ -2655,16 +2516,18 @@
                             const isAct=p.id===activeProjectId;
                             return(
                               <div key={p.id} className="rounded-xl p-4 transition"
-                                style={{background:isAct?'rgba(217,70,239,0.05)':'rgba(255,255,255,0.02)',border:isAct?'1px solid rgba(217,70,239,0.18)':'1px solid rgba(255,255,255,0.05)'}}>
+                                style={{background:isAct?'rgba(37,99,235,0.05)':'rgba(255,255,255,0.02)',border:isAct?'1px solid rgba(37,99,235,0.18)':'1px solid rgba(255,255,255,0.05)'}}>
                                 <div className="flex justify-between items-start mb-3">
                                   <div>
                                     <div className="flex items-center gap-2">
                                       <h4 className="font-bold text-sm text-white">{p.name}</h4>
-                                      {isAct&&<span className="text-[9px] font-bold px-2 py-0.5 rounded-full text-fuchsia-300" style={{background:'rgba(217,70,239,0.12)'}}>ACTIVO</span>}
+                                      {isAct&&<span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                                        style={{color:'#93c5fd',background:'rgba(37,99,235,0.12)'}}>ACTIVO</span>}
                                     </div>
                                     <p className="text-[10px] text-slate-600 mt-0.5 font-mono">{p.videoName||'Sin video'}</p>
                                   </div>
-                                  <button onClick={()=>deleteProject(p.id,p.name)} className="p-1.5 text-slate-600 hover:text-red-400 transition rounded-lg">
+                                  <button onClick={()=>deleteProject(p.id,p.name)}
+                                    className="p-1.5 text-slate-600 hover:text-red-400 transition rounded-lg">
                                     <Icons.Trash className="w-3.5 h-3.5"/>
                                   </button>
                                 </div>
@@ -2672,8 +2535,8 @@
                                   <span className="text-[10px] text-slate-600 font-mono">{p.cuts.length} cortes · {(p.frames||[]).length} fotos</span>
                                   {!isAct&&(
                                     <button onClick={()=>switchProject(p.id)}
-                                      className="text-[11px] font-bold text-fuchsia-400 hover:text-fuchsia-300 px-3 py-1 rounded-lg transition"
-                                      style={{background:'rgba(217,70,239,0.06)',border:'1px solid rgba(217,70,239,0.12)'}}>
+                                      className="text-[11px] font-bold px-3 py-1 rounded-lg transition"
+                                      style={{color:'#60a5fa',background:'rgba(37,99,235,0.06)',border:'1px solid rgba(37,99,235,0.12)'}}>
                                       Cargar
                                     </button>
                                   )}
@@ -2690,7 +2553,7 @@
                       <div className="space-y-3 animate-fade-up">
                         <div className="rounded-xl p-3 text-xs text-slate-500 leading-relaxed"
                           style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
-                          🎬 Analizando: <strong className="text-fuchsia-400">{activeProject.name}</strong>
+                          🎬 Analizando: <strong style={{color:'#60a5fa'}}>{activeProject.name}</strong>
                           <span className="block mt-0.5 text-[10px] text-slate-600">Clic en el botón o usá el atajo al momento del evento</span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -2720,8 +2583,8 @@
                       <div className="space-y-4 animate-fade-up">
                         <div className="flex justify-between items-center">
                           <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Compilado y exportación</span>
-                          <span className="text-[10px] font-bold text-fuchsia-400 px-2 py-0.5 rounded-full font-mono"
-                            style={{background:'rgba(217,70,239,0.08)'}}>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full font-mono"
+                            style={{color:'#60a5fa',background:'rgba(37,99,235,0.08)'}}>
                             {selectedCutsForMerge.length} sel.
                           </span>
                         </div>
@@ -2730,7 +2593,7 @@
                           <div className="flex justify-between items-center pb-2 border-b border-white/5">
                             <span className="text-xs font-bold text-white">Orden del compilado</span>
                             <div className="flex gap-3 text-[10px]">
-                              <button onClick={handleSelectAllCuts} className="text-fuchsia-400 hover:text-fuchsia-300 font-bold transition">Todo</button>
+                              <button onClick={handleSelectAllCuts} className="font-bold transition" style={{color:'#60a5fa'}}>Todo</button>
                               <span className="text-slate-700">|</span>
                               <button onClick={handleDeselectAllCuts} className="text-slate-500 hover:text-slate-400 font-bold transition">Ninguno</button>
                             </div>
@@ -2742,7 +2605,7 @@
                                 if(!cc&&!cf)return null;
                                 const isF=!!cf;
                                 const title=cc?cc.categoryName:(cf.isImported?`📷 ${cf.fileName||'Foto'}`:`📸 Foto @ ${formatTime(cf.time)}`);
-                                const col=cc?cc.color:'#d946ef';
+                                const col=cc?cc.color:'#2563eb';
                                 return(
                                   <div key={id} className="flex items-center justify-between px-3 py-2 rounded-lg"
                                     style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.05)'}}>
@@ -2772,7 +2635,7 @@
                           <div className="grid grid-cols-2 gap-2 pt-1">
                             <button onClick={playCompilationInApp} disabled={!selectedCutsForMerge.length||!videoSrc}
                               className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white transition disabled:opacity-30"
-                              style={{background:'linear-gradient(135deg,#3b82f6,#6366f1)',boxShadow:selectedCutsForMerge.length&&videoSrc?'0 4px 16px rgba(99,102,241,0.25)':'none'}}>
+                              style={{background:'linear-gradient(135deg,#2563eb,#1d4ed8)',boxShadow:selectedCutsForMerge.length&&videoSrc?'0 4px 16px rgba(37,99,235,0.25)':'none'}}>
                               <Icons.Tv className="w-4 h-4"/><span>Ver en App</span>
                             </button>
                             <button onClick={exportUnifiedVideo} disabled={!selectedCutsForMerge.length||!videoSrc}
@@ -2804,16 +2667,15 @@
                                       <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-2">
                                           <input type="checkbox" checked={isChk} onChange={()=>handleToggleCutCheckbox(cut.id)}
-                                            className="w-3.5 h-3.5 rounded cursor-pointer accent-fuchsia-500"/>
+                                            className="w-3.5 h-3.5 rounded cursor-pointer accent-blue-500"/>
                                           <span className="text-[9px] text-slate-600 font-mono">#{idx+1}</span>
                                           <span className="font-semibold text-xs text-white truncate max-w-[110px]">{cut.categoryName}</span>
                                           {cut.shapes?.length>0&&(
-                                            <span className="text-[9px] font-bold text-fuchsia-400 px-1.5 py-0.5 rounded"
-                                              style={{background:'rgba(217,70,239,0.08)'}}>
+                                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                                              style={{color:'#60a5fa',background:'rgba(37,99,235,0.08)'}}>
                                               🎨 {cut.shapes.length}
                                             </span>
                                           )}
-                                          {/* ✅ Badge si tiene spotlights */}
                                           {cut.shapes?.some(s=>s.type==='tactical_spotlight')&&(
                                             <span className="text-[9px] font-bold text-yellow-400 px-1.5 py-0.5 rounded"
                                               style={{background:'rgba(234,179,8,0.1)'}}>
@@ -2845,18 +2707,18 @@
                                         <span className="text-[9px] text-slate-600 font-bold uppercase">In</span>
                                         <input type="text" value={formatTime(cut.start)}
                                           onChange={e=>{const v=parseTimeInput(e.target.value);if(!isNaN(v))setCuts(prev=>prev.map(c=>c.id===cut.id?{...c,start:+Math.min(v,c.end-0.5).toFixed(2)}:c));}}
-                                          className="w-16 text-center rounded-lg text-xs font-mono font-bold text-fuchsia-300 focus:outline-none py-0.5 transition"
-                                          style={{background:'rgba(217,70,239,0.06)',border:'1px solid rgba(217,70,239,0.12)'}}
-                                          onFocus={e=>e.target.style.borderColor='rgba(217,70,239,0.5)'}
-                                          onBlur={e=>e.target.style.borderColor='rgba(217,70,239,0.12)'}/>
+                                          className="w-16 text-center rounded-lg text-xs font-mono font-bold focus:outline-none py-0.5 transition"
+                                          style={{color:'#60a5fa',background:'rgba(37,99,235,0.06)',border:'1px solid rgba(37,99,235,0.12)'}}
+                                          onFocus={e=>e.target.style.borderColor='rgba(37,99,235,0.5)'}
+                                          onBlur={e=>e.target.style.borderColor='rgba(37,99,235,0.12)'}/>
                                         <span className="text-slate-700 text-xs">→</span>
                                         <span className="text-[9px] text-slate-600 font-bold uppercase">Out</span>
                                         <input type="text" value={formatTime(cut.end)}
                                           onChange={e=>{const v=parseTimeInput(e.target.value);if(!isNaN(v))setCuts(prev=>prev.map(c=>c.id===cut.id?{...c,end:+Math.max(v,c.start+0.5).toFixed(2)}:c));}}
-                                          className="w-16 text-center rounded-lg text-xs font-mono font-bold text-fuchsia-300 focus:outline-none py-0.5 transition"
-                                          style={{background:'rgba(217,70,239,0.06)',border:'1px solid rgba(217,70,239,0.12)'}}
-                                          onFocus={e=>e.target.style.borderColor='rgba(217,70,239,0.5)'}
-                                          onBlur={e=>e.target.style.borderColor='rgba(217,70,239,0.12)'}/>
+                                          className="w-16 text-center rounded-lg text-xs font-mono font-bold focus:outline-none py-0.5 transition"
+                                          style={{color:'#60a5fa',background:'rgba(37,99,235,0.06)',border:'1px solid rgba(37,99,235,0.12)'}}
+                                          onFocus={e=>e.target.style.borderColor='rgba(37,99,235,0.5)'}
+                                          onBlur={e=>e.target.style.borderColor='rgba(37,99,235,0.12)'}/>
                                         <span className="text-[9px] text-slate-600 font-mono ml-auto">{(cut.end-cut.start).toFixed(1)}s</span>
                                       </div>
                                     </div>
@@ -2875,8 +2737,8 @@
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Galería de capturas</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-fuchsia-400 px-2 py-0.5 rounded-full font-mono"
-                              style={{background:'rgba(217,70,239,0.08)'}}>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full font-mono"
+                              style={{color:'#60a5fa',background:'rgba(37,99,235,0.08)'}}>
                               {frames.length} fotos
                             </span>
                             <input type="file" accept="image/*" ref={importPhotoRef} className="hidden" onChange={handleImportPhoto}/>
@@ -2908,17 +2770,17 @@
                                       style={{objectFit:'contain'}}/>
                                     {frame.isImported&&(
                                       <div className="absolute top-1.5 right-1.5 text-[8px] font-bold px-1.5 py-0.5 rounded text-white"
-                                        style={{background:'rgba(139,92,246,0.85)'}}>IMPORTADA</div>
+                                        style={{background:'rgba(37,99,235,0.85)'}}>IMPORTADA</div>
                                     )}
                                     <div className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-1 rounded-lg"
                                       style={{background:'rgba(0,0,0,0.75)'}}>
                                       <input type="checkbox" checked={isChk} onChange={()=>handleToggleCutCheckbox(frame.id)}
-                                        className="w-3.5 h-3.5 rounded cursor-pointer accent-fuchsia-500"/>
+                                        className="w-3.5 h-3.5 rounded cursor-pointer accent-blue-500"/>
                                     </div>
                                   </div>
                                   <div className="p-2 flex items-center justify-between" style={{background:'rgba(0,0,0,0.4)'}}>
                                     <div>
-                                      <span className="block text-[10px] font-mono font-bold text-fuchsia-400">
+                                      <span className="block text-[10px] font-mono font-bold" style={{color:'#60a5fa'}}>
                                         {frame.isImported?frame.fileName?.substring(0,14)||'Importada':formatTime(frame.time)}
                                       </span>
                                       {frame.shapes?.length>0&&<span className="text-[9px] text-amber-400 font-bold">🎨 {frame.shapes.length}</span>}
@@ -2955,7 +2817,8 @@
                       <div className="space-y-5 animate-fade-up">
                         <div className="rounded-2xl p-4 space-y-3"
                           style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                          <h3 className="text-xs font-bold text-fuchsia-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-1.5"
+                            style={{color:'#60a5fa'}}>
                             <Icons.Plus className="w-3.5 h-3.5"/>Agregar Categoría
                           </h3>
                           <form onSubmit={handleAddCategory} className="space-y-3">
@@ -3009,7 +2872,7 @@
                                 <div className="flex items-center justify-between">
                                   <input type="text" value={cat.name}
                                     onChange={e=>handleCategoryChange(cat.id,'name',e.target.value)}
-                                    className="font-bold text-xs text-white bg-transparent border-b border-transparent hover:border-white/15 focus:border-fuchsia-500 focus:outline-none w-48 py-0.5 transition"/>
+                                    className="font-bold text-xs text-white bg-transparent border-b border-transparent hover:border-white/15 focus:border-blue-500 focus:outline-none w-48 py-0.5 transition"/>
                                   <button onClick={()=>deleteCategory(cat.id)}
                                     className="p-1.5 text-slate-600 hover:text-red-400 transition rounded-lg">
                                     <Icons.Trash className="w-3.5 h-3.5"/>
