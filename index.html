@@ -426,30 +426,49 @@
 
                         <!-- BASKETBALL COURT — FIBA 28 x 15 m -->
                         <svg id="svg-basketball" class="w-full h-full absolute inset-0" viewBox="0 0 28 15" preserveAspectRatio="xMidYMid meet" style="display: none;">
-                            <rect width="28" height="15" fill="#a86f3f"/>
-                            <rect x="0.15" y="0.15" width="27.7" height="14.7" rx="0.05" fill="#c68a52" stroke="#ffffff" stroke-width="0.12"/>
-                            <!-- Línea central y círculo central -->
+                            <rect width="28" height="15" fill="#b9783f"/>
+                            <rect x="0.15" y="0.15" width="27.7" height="14.7" fill="#d29a5c" stroke="#ffffff" stroke-width="0.12"/>
                             <line x1="14" y1="0.15" x2="14" y2="14.85" stroke="#ffffff" stroke-width="0.10"/>
                             <circle cx="14" cy="7.5" r="1.80" fill="none" stroke="#ffffff" stroke-width="0.10"/>
-                            <!-- Zonas restringidas / tiros libres -->
-                            <rect x="0.15" y="5.25" width="4.90" height="4.50" fill="rgba(255,255,255,0.10)" stroke="#ffffff" stroke-width="0.10"/>
-                            <rect x="22.95" y="5.25" width="4.90" height="4.50" fill="rgba(255,255,255,0.10)" stroke="#ffffff" stroke-width="0.10"/>
-                            <line x1="5.80" y1="5.25" x2="5.80" y2="9.75" stroke="#ffffff" stroke-width="0.10"/>
-                            <line x1="22.20" y1="5.25" x2="22.20" y2="9.75" stroke="#ffffff" stroke-width="0.10"/>
-                            <!-- Semicírculos de tiros libres -->
-                            <path d="M 5.8 5.25 A 1.8 1.8 0 0 1 5.8 9.75" fill="none" stroke="#ffffff" stroke-width="0.10"/>
-                            <path d="M 22.2 5.25 A 1.8 1.8 0 0 0 22.2 9.75" fill="none" stroke="#ffffff" stroke-width="0.10"/>
-                            <!-- Arcos de 3 puntos FIBA -->
-                            <path d="M 0.15 2.45 A 6.75 6.75 0 0 1 6.75 7.5 A 6.75 6.75 0 0 1 0.15 12.55" fill="none" stroke="#ffffff" stroke-width="0.10"/>
-                            <path d="M 27.85 2.45 A 6.75 6.75 0 0 0 21.25 7.5 A 6.75 6.75 0 0 0 27.85 12.55" fill="none" stroke="#ffffff" stroke-width="0.10"/>
-                            <!-- Aros -->
-                            <circle cx="1.575" cy="7.5" r="0.225" fill="none" stroke="#ff6b35" stroke-width="0.10"/>
-                            <circle cx="26.425" cy="7.5" r="0.225" fill="none" stroke="#ff6b35" stroke-width="0.10"/>
-                            <line x1="0.15" y1="7.5" x2="1.35" y2="7.5" stroke="#ffffff" stroke-width="0.10"/>
-                            <line x1="26.65" y1="7.5" x2="27.85" y2="7.5" stroke="#ffffff" stroke-width="0.10"/>
+                            <circle cx="14" cy="7.5" r="0.07" fill="#ffffff"/>
+
+                            <!-- Zonas restringidas -->
+                            <rect x="0.15" y="5.05" width="4.90" height="4.90" fill="#b86428" stroke="#ffffff" stroke-width="0.10"/>
+                            <rect x="22.95" y="5.05" width="4.90" height="4.90" fill="#b86428" stroke="#ffffff" stroke-width="0.10"/>
+
+                            <!-- Líneas de tiro libre -->
+                            <line x1="5.05" y1="5.05" x2="5.05" y2="9.95" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="22.95" y1="5.05" x2="22.95" y2="9.95" stroke="#ffffff" stroke-width="0.10"/>
+
+                            <!-- Semicírculos de tiro libre -->
+                            <path d="M 5.05 5.05 A 2.45 2.45 0 0 1 5.05 9.95" fill="none" stroke="#ffffff" stroke-width="0.10"/>
+                            <path d="M 22.95 5.05 A 2.45 2.45 0 0 0 22.95 9.95" fill="none" stroke="#ffffff" stroke-width="0.10"/>
+
+                            <!-- Arcos de 3 puntos -->
+                            <path d="M 0.15 2.40 L 1.575 2.40 A 6.75 6.75 0 0 1 1.575 12.60 L 0.15 12.60" fill="none" stroke="#ffffff" stroke-width="0.10"/>
+                            <path d="M 27.85 2.40 L 26.425 2.40 A 6.75 6.75 0 0 0 26.425 12.60 L 27.85 12.60" fill="none" stroke="#ffffff" stroke-width="0.10"/>
+
+                            <!-- Marcas de rebote -->
+                            <line x1="3.25" y1="5.05" x2="3.25" y2="4.72" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="3.25" y1="9.95" x2="3.25" y2="10.28" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="4.00" y1="5.05" x2="4.00" y2="4.72" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="4.00" y1="9.95" x2="4.00" y2="10.28" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="24.75" y1="5.05" x2="24.75" y2="4.72" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="24.75" y1="9.95" x2="24.75" y2="10.28" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="24.00" y1="5.05" x2="24.00" y2="4.72" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="24.00" y1="9.95" x2="24.00" y2="10.28" stroke="#ffffff" stroke-width="0.10"/>
+
+                            <!-- Tableros y aros -->
+                            <rect x="0.35" y="6.15" width="0.08" height="2.70" fill="#ffffff"/>
+                            <rect x="27.57" y="6.15" width="0.08" height="2.70" fill="#ffffff"/>
+                            <circle cx="1.575" cy="7.5" r="0.225" fill="none" stroke="#f97316" stroke-width="0.10"/>
+                            <circle cx="26.425" cy="7.5" r="0.225" fill="none" stroke="#f97316" stroke-width="0.10"/>
+                            <line x1="0.35" y1="7.5" x2="1.35" y2="7.5" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="26.65" y1="7.5" x2="27.65" y2="7.5" stroke="#ffffff" stroke-width="0.10"/>
+
                             <!-- Semicírculos de no-carga -->
-                            <path d="M 0.65 6.95 A 0.9 0.9 0 0 1 0.65 8.05" fill="none" stroke="#ffffff" stroke-width="0.08"/>
-                            <path d="M 27.35 6.95 A 0.9 0.9 0 0 0 27.35 8.05" fill="none" stroke="#ffffff" stroke-width="0.08"/>
+                            <path d="M 0.65 6.95 A 0.90 0.90 0 0 1 0.65 8.05" fill="none" stroke="#ffffff" stroke-width="0.08"/>
+                            <path d="M 27.35 6.95 A 0.90 0.90 0 0 0 27.35 8.05" fill="none" stroke="#ffffff" stroke-width="0.08"/>
                         </svg>
 
                         <!-- HANDBALL COURT — IHF 40 x 20 m -->
