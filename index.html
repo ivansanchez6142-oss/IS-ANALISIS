@@ -1,4 +1,4 @@
-YPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -424,66 +424,87 @@ YPE html>
                             <path d="M 780 475 A 25 25 0 0 0 755 500" fill="none" stroke="#ffffff" stroke-width="4"/>
                         </svg>
 
-                        <!-- BASKETBALL COURT -->
-                        <svg id="svg-basketball" class="w-full h-full absolute inset-0" viewBox="0 0 940 500" preserveAspectRatio="none" style="display: none;">
-                            <rect width="940" height="500" fill="#c9864b"/>
-                            <rect x="18" y="18" width="904" height="464" fill="#d89a62" stroke="#ffffff" stroke-width="5"/>
-                            <line x1="470" y1="18" x2="470" y2="482" stroke="#ffffff" stroke-width="4"/>
-                            <circle cx="470" cy="250" r="60" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <circle cx="470" cy="250" r="4" fill="#ffffff"/>
-                            <path d="M 18 150 L 150 150 L 150 350 L 18 350" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 922 150 L 790 150 L 790 350 L 922 350" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 150 175 A 75 75 0 0 1 150 325" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 790 175 A 75 75 0 0 0 790 325" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 18 95 A 155 155 0 0 1 173 250 A 155 155 0 0 1 18 405" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 922 95 A 155 155 0 0 0 767 250 A 155 155 0 0 0 922 405" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <circle cx="42" cy="250" r="7" fill="#ffffff"/>
-                            <circle cx="898" cy="250" r="7" fill="#ffffff"/>
-                            <rect x="0" y="220" width="18" height="60" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="3"/>
-                            <rect x="922" y="220" width="18" height="60" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="3"/>
+                        <!-- BASKETBALL COURT — FIBA 28 x 15 m -->
+                        <svg id="svg-basketball" class="w-full h-full absolute inset-0" viewBox="0 0 28 15" preserveAspectRatio="xMidYMid meet" style="display: none;">
+                            <rect width="28" height="15" fill="#a86f3f"/>
+                            <rect x="0.15" y="0.15" width="27.7" height="14.7" rx="0.05" fill="#c68a52" stroke="#ffffff" stroke-width="0.12"/>
+                            <!-- Línea central y círculo central -->
+                            <line x1="14" y1="0.15" x2="14" y2="14.85" stroke="#ffffff" stroke-width="0.10"/>
+                            <circle cx="14" cy="7.5" r="1.80" fill="none" stroke="#ffffff" stroke-width="0.10"/>
+                            <!-- Zonas restringidas / tiros libres -->
+                            <rect x="0.15" y="5.25" width="4.90" height="4.50" fill="rgba(255,255,255,0.10)" stroke="#ffffff" stroke-width="0.10"/>
+                            <rect x="22.95" y="5.25" width="4.90" height="4.50" fill="rgba(255,255,255,0.10)" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="5.80" y1="5.25" x2="5.80" y2="9.75" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="22.20" y1="5.25" x2="22.20" y2="9.75" stroke="#ffffff" stroke-width="0.10"/>
+                            <!-- Semicírculos de tiros libres -->
+                            <path d="M 5.8 5.25 A 1.8 1.8 0 0 1 5.8 9.75" fill="none" stroke="#ffffff" stroke-width="0.10"/>
+                            <path d="M 22.2 5.25 A 1.8 1.8 0 0 0 22.2 9.75" fill="none" stroke="#ffffff" stroke-width="0.10"/>
+                            <!-- Arcos de 3 puntos FIBA -->
+                            <path d="M 0.15 2.45 A 6.75 6.75 0 0 1 6.75 7.5 A 6.75 6.75 0 0 1 0.15 12.55" fill="none" stroke="#ffffff" stroke-width="0.10"/>
+                            <path d="M 27.85 2.45 A 6.75 6.75 0 0 0 21.25 7.5 A 6.75 6.75 0 0 0 27.85 12.55" fill="none" stroke="#ffffff" stroke-width="0.10"/>
+                            <!-- Aros -->
+                            <circle cx="1.575" cy="7.5" r="0.225" fill="none" stroke="#ff6b35" stroke-width="0.10"/>
+                            <circle cx="26.425" cy="7.5" r="0.225" fill="none" stroke="#ff6b35" stroke-width="0.10"/>
+                            <line x1="0.15" y1="7.5" x2="1.35" y2="7.5" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="26.65" y1="7.5" x2="27.85" y2="7.5" stroke="#ffffff" stroke-width="0.10"/>
+                            <!-- Semicírculos de no-carga -->
+                            <path d="M 0.65 6.95 A 0.9 0.9 0 0 1 0.65 8.05" fill="none" stroke="#ffffff" stroke-width="0.08"/>
+                            <path d="M 27.35 6.95 A 0.9 0.9 0 0 0 27.35 8.05" fill="none" stroke="#ffffff" stroke-width="0.08"/>
                         </svg>
 
-                        <!-- HANDBALL COURT -->
-                        <svg id="svg-handball" class="w-full h-full absolute inset-0" viewBox="0 0 900 500" preserveAspectRatio="none" style="display: none;">
-                            <rect width="900" height="500" fill="#2f7d32"/>
-                            <rect x="18" y="18" width="864" height="464" fill="#3f9342" stroke="#ffffff" stroke-width="5"/>
-                            <line x1="450" y1="18" x2="450" y2="482" stroke="#ffffff" stroke-width="4"/>
-                            <circle cx="450" cy="250" r="60" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <circle cx="450" cy="250" r="4" fill="#ffffff"/>
-                            <path d="M 18 150 L 105 150 A 100 100 0 0 1 105 350 L 18 350" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 882 150 L 795 150 A 100 100 0 0 0 795 350 L 882 350" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 18 190 L 75 190 A 60 60 0 0 1 75 310 L 18 310" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 882 190 L 825 190 A 60 60 0 0 0 825 310 L 882 310" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <line x1="18" y1="215" x2="18" y2="285" stroke="#ffffff" stroke-width="8"/>
-                            <line x1="882" y1="215" x2="882" y2="285" stroke="#ffffff" stroke-width="8"/>
+                        <!-- HANDBALL COURT — IHF 40 x 20 m -->
+                        <svg id="svg-handball" class="w-full h-full absolute inset-0" viewBox="0 0 40 20" preserveAspectRatio="xMidYMid meet" style="display: none;">
+                            <rect width="40" height="20" fill="#2f7d32"/>
+                            <rect x="0.15" y="0.15" width="39.7" height="19.7" fill="#3f9342" stroke="#ffffff" stroke-width="0.12"/>
+                            <line x1="20" y1="0.15" x2="20" y2="19.85" stroke="#ffffff" stroke-width="0.10"/>
+                            <circle cx="20" cy="10" r="1.75" fill="none" stroke="#ffffff" stroke-width="0.10"/>
+                            <circle cx="20" cy="10" r="0.08" fill="#ffffff"/>
+                            <!-- Área de portería de 6 m -->
+                            <path d="M 0.15 6.25 L 6.00 6.25 A 6 6 0 0 1 6.00 13.75 L 0.15 13.75" fill="rgba(255,255,255,0.10)" stroke="#ffffff" stroke-width="0.12"/>
+                            <path d="M 39.85 6.25 L 34.00 6.25 A 6 6 0 0 0 34.00 13.75 L 39.85 13.75" fill="rgba(255,255,255,0.10)" stroke="#ffffff" stroke-width="0.12"/>
+                            <!-- Línea de 9 m discontinua -->
+                            <path d="M 0.15 5.15 L 5.55 5.15 A 9 9 0 0 1 5.55 14.85 L 0.15 14.85" fill="none" stroke="#ffffff" stroke-width="0.10" stroke-dasharray="0.35 0.25"/>
+                            <path d="M 39.85 5.15 L 34.45 5.15 A 9 9 0 0 0 34.45 14.85 L 39.85 14.85" fill="none" stroke="#ffffff" stroke-width="0.10" stroke-dasharray="0.35 0.25"/>
+                            <!-- Línea de 7 m -->
+                            <line x1="7" y1="9.65" x2="7" y2="10.35" stroke="#ffffff" stroke-width="0.14"/>
+                            <line x1="33" y1="9.65" x2="33" y2="10.35" stroke="#ffffff" stroke-width="0.14"/>
+                            <!-- Línea de limitación del portero a 4 m -->
+                            <line x1="4" y1="9.65" x2="4" y2="10.35" stroke="#ffffff" stroke-width="0.14"/>
+                            <line x1="36" y1="9.65" x2="36" y2="10.35" stroke="#ffffff" stroke-width="0.14"/>
+                            <!-- Porterías -->
+                            <rect x="-0.25" y="8.65" width="0.40" height="2.70" fill="none" stroke="#ffffff" stroke-width="0.12"/>
+                            <rect x="39.85" y="8.65" width="0.40" height="2.70" fill="none" stroke="#ffffff" stroke-width="0.12"/>
                         </svg>
 
-                        <!-- VOLLEYBALL COURT -->
-                        <svg id="svg-volleyball" class="w-full h-full absolute inset-0" viewBox="0 0 900 500" preserveAspectRatio="none" style="display: none;">
-                            <rect width="900" height="500" fill="#2d7c37"/>
-                            <rect x="18" y="18" width="864" height="464" fill="#3d9a4a" stroke="#ffffff" stroke-width="5"/>
-                            <line x1="450" y1="18" x2="450" y2="482" stroke="#ffffff" stroke-width="7"/>
-                            <line x1="270" y1="18" x2="270" y2="482" stroke="#ffffff" stroke-width="4"/>
-                            <line x1="630" y1="18" x2="630" y2="482" stroke="#ffffff" stroke-width="4"/>
-                            <line x1="18" y1="18" x2="882" y2="18" stroke="#ffffff" stroke-width="5"/>
-                            <line x1="18" y1="482" x2="882" y2="482" stroke="#ffffff" stroke-width="5"/>
+                        <!-- VOLLEYBALL COURT — FIVB 18 x 9 m -->
+                        <svg id="svg-volleyball" class="w-full h-full absolute inset-0" viewBox="0 0 18 9" preserveAspectRatio="xMidYMid meet" style="display: none;">
+                            <rect width="18" height="9" fill="#2d7c37"/>
+                            <rect x="0.05" y="0.05" width="17.9" height="8.9" fill="#3d9a4a" stroke="#ffffff" stroke-width="0.08"/>
+                            <line x1="9" y1="0.05" x2="9" y2="8.95" stroke="#ffffff" stroke-width="0.12"/>
+                            <line x1="6" y1="0.05" x2="6" y2="8.95" stroke="#ffffff" stroke-width="0.08"/>
+                            <line x1="12" y1="0.05" x2="12" y2="8.95" stroke="#ffffff" stroke-width="0.08"/>
+                            <line x1="0.05" y1="0.05" x2="17.95" y2="0.05" stroke="#ffffff" stroke-width="0.08"/>
+                            <line x1="0.05" y1="8.95" x2="17.95" y2="8.95" stroke="#ffffff" stroke-width="0.08"/>
                         </svg>
 
-                        <!-- FIELD HOCKEY COURT -->
-                        <svg id="svg-hockey" class="w-full h-full absolute inset-0" viewBox="0 0 1000 600" preserveAspectRatio="none" style="display: none;">
-                            <rect width="1000" height="600" fill="#3b8d3f"/>
-                            <rect x="20" y="20" width="960" height="560" fill="#4da653" stroke="#ffffff" stroke-width="5"/>
-                            <line x1="500" y1="20" x2="500" y2="580" stroke="#ffffff" stroke-width="4"/>
-                            <circle cx="500" cy="300" r="75" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <circle cx="500" cy="300" r="4" fill="#ffffff"/>
-                            <path d="M 20 170 A 150 150 0 0 1 170 300 A 150 150 0 0 1 20 430" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 980 170 A 150 150 0 0 0 830 300 A 150 150 0 0 0 980 430" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 20 235 A 75 75 0 0 1 95 300 A 75 75 0 0 1 20 365" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <path d="M 980 235 A 75 75 0 0 0 905 300 A 75 75 0 0 0 980 365" fill="none" stroke="#ffffff" stroke-width="4"/>
-                            <circle cx="135" cy="300" r="5" fill="#ffffff"/>
-                            <circle cx="865" cy="300" r="5" fill="#ffffff"/>
-                            <rect x="0" y="270" width="20" height="60" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="3"/>
-                            <rect x="980" y="270" width="20" height="60" fill="rgba(255,255,255,0.15)" stroke="#ffffff" stroke-width="3"/>
+                        <!-- FIELD HOCKEY COURT — FIH 91.40 x 55 m -->
+                        <svg id="svg-hockey" class="w-full h-full absolute inset-0" viewBox="0 0 91.4 55" preserveAspectRatio="xMidYMid meet" style="display: none;">
+                            <rect width="91.4" height="55" fill="#3b8d3f"/>
+                            <rect x="0.15" y="0.15" width="91.1" height="54.7" fill="#4da653" stroke="#ffffff" stroke-width="0.12"/>
+                            <!-- Línea central -->
+                            <line x1="45.7" y1="0.15" x2="45.7" y2="54.85" stroke="#ffffff" stroke-width="0.10"/>
+                            <!-- Líneas de 23 m -->
+                            <line x1="22.7" y1="0.15" x2="22.7" y2="54.85" stroke="#ffffff" stroke-width="0.10"/>
+                            <line x1="68.7" y1="0.15" x2="68.7" y2="54.85" stroke="#ffffff" stroke-width="0.10"/>
+                            <!-- Círculos de tiro: radio 14.63 m -->
+                            <path d="M 0.15 12.45 A 14.63 14.63 0 0 1 14.78 27.5 A 14.63 14.63 0 0 1 0.15 42.55" fill="none" stroke="#ffffff" stroke-width="0.12"/>
+                            <path d="M 91.25 12.45 A 14.63 14.63 0 0 0 76.62 27.5 A 14.63 14.63 0 0 0 91.25 42.55" fill="none" stroke="#ffffff" stroke-width="0.12"/>
+                            <!-- Puntos de penalti a 6.475 m de cada línea de fondo -->
+                            <circle cx="6.625" cy="27.5" r="0.12" fill="#ffffff"/>
+                            <circle cx="84.775" cy="27.5" r="0.12" fill="#ffffff"/>
+                            <!-- Porterías -->
+                            <rect x="-0.25" y="23.66" width="0.40" height="7.68" fill="none" stroke="#ffffff" stroke-width="0.12"/>
+                            <rect x="91.25" y="23.66" width="0.40" height="7.68" fill="none" stroke="#ffffff" stroke-width="0.12"/>
                         </svg>
 
                         <!-- Interactive Canvas Overlay -->
@@ -511,6 +532,11 @@ YPE html>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
+                <div class="flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded-lg border border-slate-700 text-[11px]">
+                    <span class="text-slate-400 font-bold mr-0.5 text-[10px]">Sistema:</span>
+                    <select id="sport-system" title="Seleccionar sistema táctico" onchange="applySportSystem(this.value)" class="bg-slate-800 text-white rounded px-1 py-0.5 border border-slate-600 text-[10px] focus:outline-none"></select>
+                </div>
+
                 <div class="flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded-lg border border-slate-700 text-[11px]">
                     <span class="text-slate-400 font-bold mr-0.5 text-[10px]">Tamaño Fichas:</span>
                     <button id="btn-size-large" onclick="setGlobalTokenSize('large')" class="btn-tool active text-[10px] px-1.5 py-0.5 rounded">Grande</button>
@@ -645,10 +671,10 @@ YPE html>
             half: 525 / 680,
             futsal: 800 / 520,
             'futsal-half': 400 / 520,
-            basketball: 940 / 500,
-            handball: 900 / 500,
-            volleyball: 900 / 500,
-            hockey: 1000 / 600
+            basketball: 28 / 15,
+            handball: 40 / 20,
+            volleyball: 18 / 9,
+            hockey: 91.4 / 55
         };
         let currentPitchView = 'full';
         const pitchOuter = document.querySelector('.pitch-container-outer');
@@ -839,6 +865,7 @@ YPE html>
             }
 
             requestAnimationFrame(() => {
+                refreshSportSystems();
                 resizePitch();
                 loadDefaultTeams();
             });
@@ -1586,6 +1613,167 @@ YPE html>
             ]
         };
 
+        const SPORT_SYSTEMS = {
+            football: {
+                '4-3-3': formationsMap['4-3-3'],
+                '4-4-2': formationsMap['4-4-2'],
+                '4-2-3-1': formationsMap['4-2-3-1'],
+                '3-5-2': formationsMap['3-5-2']
+            },
+            futsal: {
+                '3-1': [
+                    { role: 'GK', isGK: true, num: '1', x: 8, y: 50 },
+                    { role: 'ALA', num: '2', x: 28, y: 22 },
+                    { role: 'FIXO', num: '3', x: 30, y: 50 },
+                    { role: 'ALA', num: '4', x: 28, y: 78 },
+                    { role: 'PIVOT', num: '9', x: 47, y: 50 }
+                ],
+                '2-2': [
+                    { role: 'GK', isGK: true, num: '1', x: 8, y: 50 },
+                    { role: 'ALA', num: '2', x: 30, y: 25 },
+                    { role: 'ALA', num: '4', x: 30, y: 75 },
+                    { role: 'PIVOT', num: '9', x: 47, y: 30 },
+                    { role: 'PIVOT', num: '10', x: 47, y: 70 }
+                ],
+                '4-0': [
+                    { role: 'GK', isGK: true, num: '1', x: 8, y: 50 },
+                    { role: 'ALA', num: '2', x: 30, y: 18 },
+                    { role: 'ALA', num: '4', x: 35, y: 82 },
+                    { role: 'ALA', num: '7', x: 47, y: 30 },
+                    { role: 'ALA', num: '9', x: 47, y: 70 }
+                ],
+                '1-2-1': [
+                    { role: 'GK', isGK: true, num: '1', x: 8, y: 50 },
+                    { role: 'FIXO', num: '3', x: 28, y: 50 },
+                    { role: 'ALA', num: '2', x: 40, y: 22 },
+                    { role: 'ALA', num: '4', x: 40, y: 78 },
+                    { role: 'PIVOT', num: '9', x: 48, y: 50 }
+                ]
+            },
+            basketball: {
+                '1-2-2': [
+                    { role: 'BASE', num: '1', x: 18, y: 50 },
+                    { role: 'ESCOLTA', num: '2', x: 32, y: 25 },
+                    { role: 'ESCOLTA', num: '3', x: 32, y: 75 },
+                    { role: 'ALA-PIVOT', num: '4', x: 46, y: 30 },
+                    { role: 'PIVOT', num: '5', x: 46, y: 70 }
+                ],
+                '2-1-2': [
+                    { role: 'BASE', num: '1', x: 18, y: 35 },
+                    { role: 'ESCOLTA', num: '2', x: 18, y: 65 },
+                    { role: 'ALA', num: '3', x: 35, y: 50 },
+                    { role: 'ALA-PIVOT', num: '4', x: 47, y: 30 },
+                    { role: 'PIVOT', num: '5', x: 47, y: 70 }
+                ],
+                '3-2': [
+                    { role: 'BASE', num: '1', x: 20, y: 50 },
+                    { role: 'ESCOLTA', num: '2', x: 32, y: 25 },
+                    { role: 'ESCOLTA', num: '3', x: 32, y: 75 },
+                    { role: 'ALA-PIVOT', num: '4', x: 47, y: 35 },
+                    { role: 'PIVOT', num: '5', x: 47, y: 65 }
+                ],
+                '2-3': [
+                    { role: 'BASE', num: '1', x: 18, y: 35 },
+                    { role: 'ESCOLTA', num: '2', x: 18, y: 65 },
+                    { role: 'ALA', num: '3', x: 35, y: 20 },
+                    { role: 'ALA-PIVOT', num: '4', x: 35, y: 80 },
+                    { role: 'PIVOT', num: '5', x: 47, y: 50 }
+                ]
+            },
+            handball: {
+                '6-0': [
+                    { role: 'GK', isGK: true, num: '1', x: 8, y: 50 },
+                    { role: 'EXTREMO', num: '2', x: 28, y: 15 },
+                    { role: 'LATERAL', num: '3', x: 34, y: 28 },
+                    { role: 'CENTRAL', num: '4', x: 40, y: 50 },
+                    { role: 'LATERAL', num: '5', x: 34, y: 72 },
+                    { role: 'EXTREMO', num: '6', x: 28, y: 85 },
+                    { role: 'PIVOTE', num: '7', x: 47, y: 50 }
+                ],
+                '5-1': [
+                    { role: 'GK', isGK: true, num: '1', x: 8, y: 50 },
+                    { role: 'EXTREMO', num: '2', x: 28, y: 15 },
+                    { role: 'LATERAL', num: '3', x: 34, y: 30 },
+                    { role: 'CENTRAL', num: '4', x: 38, y: 50 },
+                    { role: 'LATERAL', num: '5', x: 34, y: 70 },
+                    { role: 'EXTREMO', num: '6', x: 28, y: 85 },
+                    { role: 'PIVOTE', num: '7', x: 47, y: 50 }
+                ],
+                '3-2-1': [
+                    { role: 'GK', isGK: true, num: '1', x: 8, y: 50 },
+                    { role: 'DEF', num: '2', x: 28, y: 25 },
+                    { role: 'DEF', num: '3', x: 28, y: 50 },
+                    { role: 'DEF', num: '4', x: 28, y: 75 },
+                    { role: 'MED', num: '5', x: 39, y: 35 },
+                    { role: 'MED', num: '6', x: 39, y: 65 },
+                    { role: 'AVANZADO', num: '7', x: 48, y: 50 }
+                ],
+                '3-3': [
+                    { role: 'GK', isGK: true, num: '1', x: 8, y: 50 },
+                    { role: 'DEF', num: '2', x: 28, y: 25 },
+                    { role: 'DEF', num: '3', x: 28, y: 50 },
+                    { role: 'DEF', num: '4', x: 28, y: 75 },
+                    { role: 'LATERAL', num: '5', x: 45, y: 25 },
+                    { role: 'CENTRAL', num: '6', x: 45, y: 50 },
+                    { role: 'LATERAL', num: '7', x: 45, y: 75 }
+                ]
+            },
+            volleyball: {
+                '4-2': [
+                    { role: 'ARMADOR', num: '1', x: 20, y: 25 },
+                    { role: 'PUNTA', num: '2', x: 35, y: 20 },
+                    { role: 'CENTRAL', num: '3', x: 45, y: 25 },
+                    { role: 'OPUESTO', num: '4', x: 45, y: 75 },
+                    { role: 'CENTRAL', num: '5', x: 35, y: 80 },
+                    { role: 'ARMADOR', num: '6', x: 20, y: 75 }
+                ],
+                '5-1': [
+                    { role: 'ARMADOR', num: '1', x: 20, y: 25 },
+                    { role: 'PUNTA', num: '2', x: 35, y: 20 },
+                    { role: 'CENTRAL', num: '3', x: 45, y: 25 },
+                    { role: 'OPUESTO', num: '4', x: 45, y: 75 },
+                    { role: 'CENTRAL', num: '5', x: 35, y: 80 },
+                    { role: 'PUNTA', num: '6', x: 20, y: 75 }
+                ],
+                '6-2': [
+                    { role: 'ARMADOR', num: '1', x: 20, y: 25 },
+                    { role: 'PUNTA', num: '2', x: 35, y: 20 },
+                    { role: 'CENTRAL', num: '3', x: 45, y: 25 },
+                    { role: 'ARMADOR', num: '4', x: 45, y: 75 },
+                    { role: 'CENTRAL', num: '5', x: 35, y: 80 },
+                    { role: 'PUNTA', num: '6', x: 20, y: 75 }
+                ]
+            },
+            hockey: {
+                '4-3-3': [
+                    { role: 'GK', isGK: true, num: '1', x: 7, y: 50 },
+                    { role: 'DEF', num: '2', x: 20, y: 25 },
+                    { role: 'DEF', num: '3', x: 18, y: 50 },
+                    { role: 'DEF', num: '4', x: 20, y: 75 },
+                    { role: 'MED', num: '5', x: 34, y: 30 },
+                    { role: 'MED', num: '6', x: 34, y: 50 },
+                    { role: 'MED', num: '7', x: 34, y: 70 },
+                    { role: 'DEL', num: '8', x: 47, y: 20 },
+                    { role: 'DEL', num: '9', x: 47, y: 50 },
+                    { role: 'DEL', num: '10', x: 47, y: 80 },
+                    { role: 'DEL', num: '11', x: 42, y: 50 }
+                ],
+                '3-4-3': [
+                    { role: 'GK', isGK: true, num: '1', x: 7, y: 50 },
+                    { role: 'DEF', num: '2', x: 20, y: 30 },
+                    { role: 'DEF', num: '3', x: 18, y: 50 },
+                    { role: 'DEF', num: '4', x: 20, y: 70 },
+                    { role: 'MED', num: '5', x: 33, y: 20 },
+                    { role: 'MED', num: '6', x: 33, y: 40 },
+                    { role: 'MED', num: '7', x: 33, y: 60 },
+                    { role: 'MED', num: '8', x: 33, y: 80 },
+                    { role: 'DEL', num: '9', x: 47, y: 25 },
+                    { role: 'DEL', num: '10', x: 47, y: 50 },
+                    { role: 'DEL', num: '11', x: 47, y: 75 }
+                ]
+            }
+        };
+
         const SPORT_ROSTERS = {
             futsal: [
                 { role: 'GK', isGK: true, num: '1', x: 8, y: 50 },
@@ -1633,18 +1821,82 @@ YPE html>
             ]
         };
 
+        function getCurrentSportKey() {
+            if (currentPitchView === 'full' || currentPitchView === 'half') return 'football';
+            if (currentPitchView === 'futsal' || currentPitchView === 'futsal-half') return 'futsal';
+            if (currentPitchView === 'basketball') return 'basketball';
+            if (currentPitchView === 'handball') return 'handball';
+            if (currentPitchView === 'volleyball') return 'volleyball';
+            if (currentPitchView === 'hockey') return 'hockey';
+            return 'football';
+        }
+
+        function refreshSportSystems(preferredSystem = null) {
+            const select = document.getElementById('sport-system');
+            if (!select) return;
+
+            const systems = SPORT_SYSTEMS[getCurrentSportKey()] || {};
+            const previous = preferredSystem || select.value;
+            select.innerHTML = '';
+
+            Object.keys(systems).forEach(system => {
+                const option = document.createElement('option');
+                option.value = system;
+                option.textContent = system;
+                select.appendChild(option);
+            });
+
+            if (systems[previous]) {
+                select.value = previous;
+            } else {
+                select.selectedIndex = 0;
+            }
+        }
+
+        function applySportSystem(system) {
+            const systems = SPORT_SYSTEMS[getCurrentSportKey()] || {};
+            const spec = systems[system];
+            if (!spec) return;
+
+            ['A', 'B'].forEach(team => {
+                document.querySelectorAll(`.draggable-token[data-team="${team}"]`).forEach(el => el.remove());
+                spec.forEach(p => {
+                    createToken({
+                        type: 'player',
+                        team,
+                        isGK: p.isGK,
+                        num: p.num || '1',
+                        name: p.role,
+                        showName: false,
+                        x: team === 'A' ? p.x : (100 - p.x - 3),
+                        y: p.y
+                    });
+                });
+            });
+
+            ['A', 'B'].forEach(team => {
+                const select = document.getElementById(`formation-team${team}`);
+                if (select && [...select.options].some(o => o.value === system)) {
+                    select.value = system;
+                }
+            });
+        }
+
         function getActiveSportRoster() {
-            if (currentPitchView === 'futsal' || currentPitchView === 'futsal-half') return SPORT_ROSTERS.futsal;
-            if (currentPitchView === 'basketball') return SPORT_ROSTERS.basketball;
-            if (currentPitchView === 'handball') return SPORT_ROSTERS.handball;
-            if (currentPitchView === 'volleyball') return SPORT_ROSTERS.volleyball;
-            if (currentPitchView === 'hockey') return SPORT_ROSTERS.hockey;
-            return null;
+            const sportKey = getCurrentSportKey();
+            if (sportKey === 'football') return null;
+
+            const select = document.getElementById('sport-system');
+            const systems = SPORT_SYSTEMS[sportKey] || {};
+            const selected = select && systems[select.value] ? select.value : Object.keys(systems)[0];
+
+            return systems[selected] || null;
         }
 
         function loadDefaultTeams() {
             document.querySelectorAll('.draggable-token').forEach(el => el.remove());
 
+            refreshSportSystems();
             const sportRoster = getActiveSportRoster();
             if (sportRoster) {
                 sportRoster.forEach(p => {
