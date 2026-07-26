@@ -226,10 +226,13 @@
             <div class="flex flex-wrap items-center gap-2 text-xs">
                 <div class="control-group flex items-center gap-1">
                     <button onclick="setPitchView('full')" id="btn-pitch-full" class="btn-tool active text-[11px] px-2 py-0.5 rounded-md">
-                        Campo Completo
+                        Fútbol 11
                     </button>
                     <button onclick="setPitchView('half')" id="btn-pitch-half" class="btn-tool text-[11px] px-2 py-0.5 rounded-md">
                         Medio Campo
+                    </button>
+                    <button onclick="setPitchView('futsal')" id="btn-pitch-futsal" class="btn-tool text-[11px] px-2 py-0.5 rounded-md">
+                        Futsal
                     </button>
                 </div>
 
@@ -358,6 +361,38 @@
                             <path d="M 30 650 A 10 10 0 0 1 40 660" fill="none" stroke="#ffffff" stroke-width="3"/>
                             <path d="M 1020 30 A 10 10 0 0 1 1010 20" fill="none" stroke="#ffffff" stroke-width="3"/>
                             <path d="M 1020 650 A 10 10 0 0 0 1010 660" fill="none" stroke="#ffffff" stroke-width="3"/>
+                        </svg>
+
+                        <!-- FUTSAL COURT -->
+                        <svg id="svg-futsal" class="w-full h-full absolute inset-0" viewBox="0 0 800 520" preserveAspectRatio="none" style="display: none;">
+                            <!-- Indoor court surface -->
+                            <rect x="0" y="0" width="800" height="520" fill="#1e7e34"/>
+                            <rect x="20" y="20" width="760" height="480" fill="#238b38" stroke="#ffffff" stroke-width="4"/>
+
+                            <!-- Center line and circle -->
+                            <line x1="400" y1="20" x2="400" y2="500" stroke="#ffffff" stroke-width="4"/>
+                            <circle cx="400" cy="260" r="60" fill="none" stroke="#ffffff" stroke-width="4"/>
+                            <circle cx="400" cy="260" r="4" fill="#ffffff"/>
+
+                            <!-- Left penalty area -->
+                            <path d="M 20 170 L 105 170 A 95 95 0 0 1 105 350 L 20 350" fill="none" stroke="#ffffff" stroke-width="4"/>
+                            <circle cx="78" cy="260" r="4" fill="#ffffff"/>
+                            <circle cx="125" cy="260" r="4" fill="#ffffff"/>
+
+                            <!-- Right penalty area -->
+                            <path d="M 780 170 L 695 170 A 95 95 0 0 0 695 350 L 780 350" fill="none" stroke="#ffffff" stroke-width="4"/>
+                            <circle cx="722" cy="260" r="4" fill="#ffffff"/>
+                            <circle cx="675" cy="260" r="4" fill="#ffffff"/>
+
+                            <!-- Goals -->
+                            <rect x="5" y="215" width="15" height="90" fill="rgba(255,255,255,0.12)" stroke="#ffffff" stroke-width="3"/>
+                            <rect x="780" y="215" width="15" height="90" fill="rgba(255,255,255,0.12)" stroke="#ffffff" stroke-width="3"/>
+
+                            <!-- Corner arcs -->
+                            <path d="M 20 45 A 25 25 0 0 0 45 20" fill="none" stroke="#ffffff" stroke-width="4"/>
+                            <path d="M 20 475 A 25 25 0 0 1 45 500" fill="none" stroke="#ffffff" stroke-width="4"/>
+                            <path d="M 780 45 A 25 25 0 0 1 755 20" fill="none" stroke="#ffffff" stroke-width="4"/>
+                            <path d="M 780 475 A 25 25 0 0 0 755 500" fill="none" stroke="#ffffff" stroke-width="4"/>
                         </svg>
 
                         <!-- Interactive Canvas Overlay -->
@@ -514,7 +549,12 @@
         const gkColorA = '#f59e0b';
         const gkColorB = '#10b981';
 
-        const PITCH_RATIO = 1050 / 680;
+        const PITCH_RATIOS = {
+            full: 1050 / 680,
+            half: 525 / 680,
+            futsal: 800 / 520
+        };
+        let currentPitchView = 'full';
         const pitchOuter = document.querySelector('.pitch-container-outer');
         const pitchWrapper = document.getElementById('pitch-export-target');
 
@@ -536,21 +576,22 @@
             }
 
             let width = availableWidth;
-            let height = width / PITCH_RATIO;
+            const pitchRatio = PITCH_RATIOS[currentPitchView] || PITCH_RATIOS.full;
+            let height = width / pitchRatio;
 
             if (height > availableHeight) {
                 height = availableHeight;
-                width = height * PITCH_RATIO;
+                width = height * pitchRatio;
             }
 
             // Evita que el borde del campo toque los límites del contenedor.
             const margin = 2;
             width = Math.max(1, width - margin);
-            height = width / PITCH_RATIO;
+            height = width / pitchRatio;
 
             if (height > availableHeight) {
                 height = Math.max(1, availableHeight - margin);
-                width = height * PITCH_RATIO;
+                width = height * pitchRatio;
             }
 
             pitchWrapper.style.width = `${Math.floor(width)}px`;
@@ -656,19 +697,26 @@
         }
 
         function setPitchView(view) {
+            currentPitchView = view;
+
             const btnFull = document.getElementById('btn-pitch-full');
             const btnHalf = document.getElementById('btn-pitch-half');
+            const btnFutsal = document.getElementById('btn-pitch-futsal');
 
             if (btnFull) btnFull.classList.toggle('active', view === 'full');
             if (btnHalf) btnHalf.classList.toggle('active', view === 'half');
+            if (btnFutsal) btnFutsal.classList.toggle('active', view === 'futsal');
 
             const svgPitch = document.getElementById('svg-pitch');
+            const svgFutsal = document.getElementById('svg-futsal');
+
             if (svgPitch) {
-                if (view === 'half') {
-                    svgPitch.setAttribute('viewBox', '0 0 525 680');
-                } else {
-                    svgPitch.setAttribute('viewBox', '0 0 1050 680');
-                }
+                svgPitch.style.display = view === 'futsal' ? 'none' : 'block';
+                svgPitch.setAttribute('viewBox', view === 'half' ? '0 0 525 680' : '0 0 1050 680');
+            }
+
+            if (svgFutsal) {
+                svgFutsal.style.display = view === 'futsal' ? 'block' : 'none';
             }
 
             requestAnimationFrame(resizePitch);
@@ -1536,6 +1584,7 @@
 
         window.onload = () => {
             requestAnimationFrame(() => {
+                setPitchView('full');
                 resizePitch();
                 loadDefaultTeams();
                 setTool('select');
@@ -1544,4 +1593,5 @@
     </script>
 </body>
 </html>
+ 
       
